@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Read Report</title>
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/jquery-ui-1.12.1.min.js"></script>
+    <script src="js/readReport.js"></script>
+    <script src="js/d3.min.js"></script>
+    <script src="js/jquery-mousewheel-min.js"></script>
+    <link href="css/main.css" rel="stylesheet" />
+    <link href="css/jquery-ui.min.css" rel="stylesheet" />
+    <link href="css/Home.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+</head>
+
+<body onload="onFormLoad()">
+    <div id="page">
+        <header id="siteHeader">
+            <div id="siteHeaderCenter">
+                <img id="esriLogo" src="images/sampleLogo.png" alt="logo">
+                <div id="siteName">Sample QA Dashboard</div>
+            </div>
+        </header>
+        <div id="content">
+            <div id="contentTitle">
+                <div id="envirName">Query Detailed Report</div>
+            </div>
+            <div id="holderbox" class="shadowBoxDiv">
+                <table class="submitTable">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="instruction">View report:</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="radio" name="dateRadio" id="onDate" onchange="onDayChange()" checked> On:
+                            </td>
+                            <td>
+                                <input type="date" name="testDate" id="testDate" onchange="validateButton()">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="radio" name="dateRadio" id="dateRange" onchange="onDayChange()"> From:
+                            </td>
+                            <td>
+                                <input type="date" name="testDateRange" id="dateRange1" onchange="limitDateRange()"> to:
+                                <input type="date" name="testDateRange" id="dateRange2" onchange="limitDateRange()">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="radio" name="dateRadio" id="onDays" onchange="onDayChange()"> Within:
+                            </td>
+                            <td>
+                                <select name="withinDays" id="withinDays"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" id="categoryCheck" onchange="onCateChange()" />
+                                <label>Search within a certain category: </label>
+                            </td>
+                            <td>
+                                <select name="caterogyList" id="caterogyList"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="instruction">Choose environment:</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center" colspan="2">
+                                <input type="checkbox" id="envir1Chb" onchange="validateButton()" checked />
+                                <label>Envir1</label>
+                                <input type="checkbox" id="envir2Chb" onchange="validateButton()" />
+                                <label>Envir2</label>
+                                <input type="checkbox" id="envir3Chb" onchange="validateButton()" />
+                                <label>Envir3</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <button id="submitBut" type="submit" class="navigation buttonDisabled" onclick="requestReport()">Query</button>
+                                <button id="back" type="button" class="navigation" onclick="backtoMain()">Back</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p></p>
+            <div id="tooltip" class="tooltip" style="opacity: 0;"></div>
+            <div id="testListTip" class="testListTip" style="display: none;"></div>
+            <div id="charts"></div>
+            <p></p>
+            <div id="reportList" style="display:none;" class="shadowBoxDiv"></div>
+        </div>
+        <div id="footer">
+            <div id="footerContainer">
+                <div>
+                    <div class="contact">
+                        Want to learn more about our QA process?
+                        <br> Contact:
+                    </div>
+                    <a href="https://github.com/sillicon">sillicon</a>,
+                    <a href="https://github.com/sillicon">Worker A</a>,
+                    <a href="https://github.com/sillicon">Worker B</a>
+                </div>
+                <div>
+                    <div class="contact">
+                        Want to learn more about this website?
+                        <br> Contact:
+                    </div>
+                    <a href="https://github.com/sillicon">sillicon</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

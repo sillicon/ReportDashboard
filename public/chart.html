@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <script src="js/d3.min.js"></script>
+    <title></title>
+    <link href="css/charts.css" rel="stylesheet" />
+</head>
+<body>
+    <script>
+        var tempArray = [[{"testName":"Analysis","testDate":"04/10/2017","testResult":"Pass","fileName":"Analysis1491811869135.html","browser":"Firefox","envirTested":"Devext","hiveTested":"hive0"},{"testName":"Web AppBuilder","testDate":"04/10/2017","testResult":"Pass","fileName":"WebAppBuilder1491846306029.html","browser":"Firefox","envirTested":"Devext","hiveTested":"hive0"}],
+        [{"testName":"Web AppBuilder","testDate":"04/10/2017","testResult":"Fail","fileName":"WebAppBuilder1491846403951.html","browser":"Firefox","envirTested":"QAext","hiveTested":"hive0"}],
+        [{"testName":"Web AppBuilder","testDate":"04/10/2017","testResult":"Pass","fileName":"WebAppBuilder1491846385561.html","browser":"Firefox","envirTested":"Production","hiveTested":"hive0"}]]
+        var tempArray1 = [{testname: "WAB", pass: 3, fail: 5}, {testname: "Analysis", pass: 7, fail: 4}]
+        var tempArray2 = [{date: "2017/3/11", ratio: 1}, {date: "2017/3/12", ratio: 0.5}, {date: "2017/3/13", ratio: 0.3}, {date: "2017/3/14", ratio: 0}, {date: "2017/3/15", ratio: 0.8}];
+        
+        var margin = {top: 20, right: 20, bottom: 40, left: 80},
+            svgWidth = 960,
+            svgHeight = 500,
+            width = svgWidth - margin.left - margin.right,
+            height = svgHeight - margin.top - margin.bottom;
+            barHeight = 40;
+
+        tempArray2.sort(function (a, b) {
+            return new Date(a.date) - new Date(b.date);
+        })
+        
+        dateRange = Math.round((new Date(tempArray2[tempArray2.length - 1].date) - new Date(tempArray2[0].date))/1000/3600/24);
+        
+        var div = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0); // create placeholder for tooltip
+
+        svg = d3.select('body')
+            .append("svg")
+            .attr("style", "width: " + svgWidth + "px\; height: " + svgHeight + "px\;");
+
+        var x = d3.scaleUtc().range([0, width])
+            .domain([toUTCDate(tempArray2[0].date), calculateDays(toUTCDate(tempArray2[tempArray2.length - 1].date), 1)]);
+
+        var y = d3.scaleBand()
+            .range([height, 0])
+            .padding(0.1)
+            .domain(["Analysis", "Add Layer From Web"]);
+
+        passBar = svg.selectAll(".passBar")
+            .data(tempArray2)
+            .enter();
+
+        passBar.append("rect")
+            .attr("class", "passBar")
+            .attr("height", barHeight)
+            .attr("width", function(d){
+                return  x(calculateDays(toUTCDate(d.date), d.ratio)) - x(toUTCDate(d.date));
+            })
+            .attr("y", y("Analysis") + (y.bandwidth() - barHeight)/2)
+            .attr("transform", function(d){
+                return "translate(" + (margin.left + x(toUTCDate(d.date))) + ", 0)";
+            })
+            .on("mouseover", function(d) {
+                var rectBox = this;
+                div.transition()
+                    .duration(350)
+                    .style("opacity", .9);
+                div.html("<span>Test ratio: " + d.ratio + "</span><br>")
+                    .style("left", function() {
+                        var rectLeft = rectBox.getBoundingClientRect().left,
+                            rectWidth = rectBox.getBoundingClientRect().width,
+                            tipWidth = this.getBoundingClientRect().width;
+                        return ((rectLeft + rectWidth/2 - tipWidth/2 - parseInt(window.getComputedStyle(this).padding.slice(0,-2))) + "px");
+                    })
+                    .style("top", function() {
+                        var rectTop = rectBox.getBoundingClientRect().top,
+                            tipHeight = this.getBoundingClientRect().height;
+                        return ((rectTop - tipHeight - 14) + "px");
+                    });
+            })
+            .on("mouseout", function(d) {
+                div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });   
+
+        failBar = svg.selectAll(".failBar")
+            .data(tempArray2)
+            .enter();
+
+        failBar.append("rect")
+            .attr("class", "failBar")
+            .attr("height", barHeight)
+            .attr("width", function(d){
+                return  x(calculateDays(toUTCDate(d.date), 1 - d.ratio)) - x(toUTCDate(d.date));
+            })
+            .attr("y", y("Analysis") + (y.bandwidth() - barHeight)/2)
+            .attr("transform", function(d){
+                return "translate(" + (margin.left + x(toUTCDate(d.date)) + x(calculateDays(toUTCDate(d.date), d.ratio)) - x(toUTCDate(d.date))) + ", 0)";
+            })
+            .on("mouseover", function(d) {
+                var rectBox = this;
+                div.transition()
+                    .duration(350)
+                    .style("opacity", .9);
+                div.html("<span>Test ratio: " + d.ratio + "</span><br>")
+                    .style("left", function() {
+                        var rectLeft = rectBox.getBoundingClientRect().left,
+                            rectWidth = rectBox.getBoundingClientRect().width,
+                            tipWidth = this.getBoundingClientRect().width;
+                        return ((rectLeft + rectWidth/2 - tipWidth/2 - parseInt(window.getComputedStyle(this).padding.slice(0,-2))) + "px");
+                    })
+                    .style("top", function() {
+                        var rectTop = rectBox.getBoundingClientRect().top,
+                            tipHeight = this.getBoundingClientRect().height;
+                        return ((rectTop - tipHeight - 14) + "px");
+                    });
+            })
+            .on("mouseout", function(d) {
+                div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+
+        //add grid lines
+        svg.call(make_x_gridlines(dateRange)
+                .tickSize(-height)
+                .tickFormat("")
+            )
+            .selectAll("line")
+            .attr("class", "grid")
+            .attr("transform", "translate(" +  margin.left + "," + height + ")");
+        svg.select("path")
+            .attr("class", "gridDomain");
+        
+        // always draw axis at last
+        svg.append("g")
+            .attr("transform", "translate(" + margin.left + "," + height + ")")
+            .attr("class", "xAxis")
+            .call(d3.axisBottom(x).ticks(dateRange).tickFormat(d3.utcFormat("%m-%d")))
+            .selectAll("text")	
+            .style("text-anchor", "middle");
+        svg.append("g")
+            .attr("transform", "translate(" + margin.left + ", 0)")
+            .attr("class", "yAxis")
+            .call(d3.axisLeft(y))
+            .selectAll("text")
+            .attr("class", "cateName")
+            .style("text-anchor", "start")
+            .call(wrapText, margin.left - 13);
+        svg.selectAll(".domain")
+            .attr("stroke", "rgb(213, 213, 213)");
+        svg.selectAll(".xAxis .tick line")
+            .attr("stroke", "rgb(213, 213, 213)");
+        svg.selectAll(".yAxis .tick line")
+            .attr("stroke", "rgb(213, 213, 213)");
+
+        function calculateDays(date, number) {
+            date.setUTCHours(Math.round(number*24 - number*24%1));
+            date.setUTCMinutes(Math.round(number*24%1*60));
+            return date;
+        }
+
+        function make_x_gridlines(tickTime) {		
+            return d3.axisBottom(x).ticks(tickTime);
+        }
+
+        function toUTCDate(input) {
+            var tempDate = new Date(input);
+            return new Date(Date.UTC(tempDate.getFullYear(), tempDate.getMonth(), tempDate.getDate()));
+        }
+
+        function wrapText(text, width) {
+            text.each(function() {
+                var text = d3.select(this),
+                    textContent = text.text(),
+                    tempWord = addBreakSpace(textContent).split(/\s+/),
+                    x = text.attr('x'),
+                    y = text.attr('y'),
+                    dy = parseFloat(text.attr('dy') || 0),
+                    tspan = text.text(null).append('tspan').attr('x', x).attr('y', y).attr('dy', dy + 'em');
+                for (var i = 0; i < tempWord.length; i++) {
+                    tempWord[i] = calHyphen(tempWord[i]);
+                }
+                textContent = tempWord.join(" ");
+                var words = textContent.split(/\s+/).reverse(),
+                    word,
+                    line = [],
+                    lineNumber = 0,
+                    lineHeight = 1.1, // ems
+                    spanContent,
+                    breakChars = ['/', '&', '-'];
+                while (word = words.pop()) {
+                    line.push(word);
+                    tspan.text(line.join(' '));
+                    if (tspan.node().getComputedTextLength() > width) {
+                        line.pop();
+                        spanContent = line.join(' ');
+                        breakChars.forEach(function (char) {
+                            // Remove spaces trailing breakChars that were added above
+                            spanContent = spanContent.replace(char + ' ', char);
+                        });
+                        tspan.text(spanContent);
+                        line = [word];
+                        tspan = text.append('tspan').attr('x', x).attr('y', y).attr('dy', ++lineNumber * lineHeight + dy + 'em').text(word);
+                    }
+                }
+                var emToPxRatio = parseInt(window.getComputedStyle(text._groups[0][0]).fontSize.slice(0,-2));
+                text.attr("transform", "translate(-" + (margin.left - 13) + ", -" + lineNumber/2 * lineHeight * emToPxRatio + ")");
+                function calHyphen(word) {
+                    tspan.text(word);
+                    if (tspan.node().getComputedTextLength() > width) {
+                        var chars = word.split('');
+                        var asword = "";
+                        for (var i = 0; i < chars.length; i++) {
+                            asword += chars[i];
+                            tspan.text(asword);
+                            if (tspan.node().getComputedTextLength() > width) {
+                                if (chars[i - 1] !== "-") {
+                                    word = word.slice(0, i - 1) + "- " + calHyphen(word.slice(i - 1));
+                                }
+                                i = chars.length;
+                            }
+                        }
+                    }
+                    return word;
+                }
+            });
+
+            function addBreakSpace(inputString) {
+                var breakChars = ['/', '&', '-']
+                breakChars.forEach(function(char) {
+                    // Add a space after each break char for the function to use to determine line breaks
+                    inputString = inputString.replace(char, char + ' ');
+                });
+                return inputString;
+            }
+        }
+    </script>
+</body>
+</html>

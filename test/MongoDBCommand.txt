@@ -1,0 +1,11 @@
+//import CSV to Database
+mongoimport -d qareport -c reportResult --type csv --file localPath\Documents\GitHub\QADashboard\data\results.csv --headerline
+
+//restore MongoDB exported dump file (backup, move database)
+"C:\Program Files\MongoDB\Server\3.4\bin\mongorestore.exe" --db qareport "localPath\Documents\GitHub\QADashboard\data\dump\qareport"
+
+//register a Windows service with MongoDB
+"C:\Program Files\MongoDB\Server\3.4\bin\mongod.exe" --config "localPath\Documents\GitHub\QADashboard\mongod.cfg" --install
+
+//connect to mongo cloud and restore data to cloud
+"C:\Program Files\MongoDB\Server\3.4\bin\mongorestore.exe"  --uri mongodb://<username>:<password>@qareport-shard-00-00-bwtot.mongodb.net:27017,qareport-shard-00-01-bwtot.mongodb.net:27017,qareport-shard-00-02-bwtot.mongodb.net:27017/test?ssl=true&replicaSet=qareport-shard-0&authSource=admin --db qareport dump/

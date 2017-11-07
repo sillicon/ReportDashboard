@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload Your Report</title>
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/jquery-ui-1.12.1.min.js"></script>
+    <script src="js/uploadReport.js"></script>
+    <link href="css/main.css" rel="stylesheet" />
+    <link href="css/Home.css" rel="stylesheet" />
+    <link href="css/jquery-ui.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+</head>
+
+<body onload="onFormLoad()">
+    <div id="page">
+        <header id="siteHeader">
+            <div id="siteHeaderCenter">
+                <img id="esriLogo" src="images/sampleLogo.png" alt="logo">
+                <div id="siteName">Sample QA Dashboard</div>
+            </div>
+        </header>
+        <div id="content">
+            <div id="contentTitle">
+                <div id="envirName">Upload Report</div>
+            </div>
+            <div id="holderbox" class="shadowBoxDiv">
+                <table class="submitTable">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="instruction">Environment:</div>
+                            </td>
+                            <td>
+                                <select name="envir1" id="envir1" onchange="onSelectChange()"></select>
+                                <select name="envir2" id="envir2"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="instruction">Date:</div>
+                            </td>
+                            <td>
+                                <input type="date" name="testDate" id="testDate" onchange="validateButton()" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="instruction">Browser:</div>
+                            </td>
+                            <td>
+                                <select name="browser" id="browser"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="instruction">Test name:</div>
+                            </td>
+                            <td>
+                                <!-- <select name="testName" id="testName" onload="getTestName()"></select> -->
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="instruction">Report source:</div>
+                            </td>
+                            <td>
+                                <input type="file" id="sourceUpload" accept=".html" onchange="validateButton()" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="instruction">Result:</div>
+                            </td>
+                            <td>
+                                <div id="switchHolder">
+                                    <input type="checkbox" name="reportRsult" id="switchCheckbox" class="toggle" checked />
+                                    <label for="switchCheckbox" class="checkbox-label" id="switchLabel" pass="Pass" fail="Fail"></label>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div>
+                    <button id="submitBut" class="navigation buttonDisabled" onclick="submitForm()">Submit</button>
+                    <button id="back" class="navigation" onclick="backtoMain()">Back</button>
+                </div>
+                <p></p>
+                <div id="resultInfo" style="display:none;" class="shadowBoxDiv"></div>
+            </div>
+            <div id="footer">
+                <div id="footerContainer">
+                    <div>
+                        <div class="contact">
+                            Want to learn more about our QA process?
+                            <br> Contact:
+                        </div>
+                        <a href="https://github.com/sillicon">sillicon</a>,
+                        <a href="https://github.com/sillicon">Worker A</a>,
+                        <a href="https://github.com/sillicon">Worker B</a>
+                    </div>
+                    <div>
+                        <div class="contact">
+                            Want to learn more about this website?
+                            <br> Contact:
+                        </div>
+                        <a href="https://github.com/sillicon">sillicon</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

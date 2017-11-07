@@ -1,0 +1,540 @@
+﻿@font-face {
+    font-family: 'AvenirNextLTPro-Regular';
+    src: url('../fonts/AvenirNextLTPro-Regular.ttf') format('embedded-opentype'), url('../fonts/AvenirNextLTPro-Regular.woff') format('woff');
+}
+
+body {
+    font-family: 'AvenirNextLTPro-Regular';
+    margin: 0;
+}
+
+#siteHeader {
+    width: 100%;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+}
+
+#siteHeaderCenter {
+    display: block;
+    overflow: hidden;
+    position: relative;
+    width: 80%;
+    max-width: 1200px;
+    margin: auto;
+}
+
+#esriLogo {
+    display: block;
+    height: 80px;
+    width: 179px;
+    float: left;
+}
+
+#siteName {
+    position: absolute;
+    top: 50%;
+    left: 200px;
+    max-width: 1200px;
+    font-size: 2rem;
+    margin-top: -1rem;
+    word-wrap: normal;
+}
+
+@media only screen and (max-width: 820px) and (min-width: 735px),
+(max-device-width: 820px) {
+    #siteName {
+        font-size: 1.7rem;
+        margin-top: -0.85rem;
+    }
+}
+
+@media only screen and (max-width: 735px) and (min-width: 630px),
+(max-device-width: 735px) {
+    #siteName {
+        font-size: 1.3rem;
+        margin-top: -0.65rem;
+    }
+}
+
+@media only screen and (max-width: 630px),
+(max-device-width: 630px) {
+    #siteHeaderCenter {
+        text-align: center;
+    }
+    #esriLogo {
+        display: inline-block;
+        float: none;
+        height: 40px;
+        width: 90px;
+    }
+    #siteName {
+        position: relative;
+        float: initial;
+        top: 0;
+        left: 0;
+        font-size: 1.3rem;
+        margin: auto;
+    }
+}
+
+@media only screen and (max-width: 720px),
+(max-device-width: 720px) {
+    #contentNavi {
+        float: none !important;
+        text-align: left;
+    }
+    #contentNavi2 {
+        padding: initial !important;
+    }
+    #contentNavi a,
+    #contentNavi2 a {
+        position: initial;
+        display: block;
+    }
+}
+
+#footer {
+    overflow: auto;
+    margin: auto;
+    padding: 0;
+    text-align: center;
+    background-color: rgba(248, 248, 248, 1);
+    color: #005e95;
+}
+
+#footerContainer {
+    width: 80%;
+    max-width: 1200px;
+    margin: auto;
+    text-align: center;
+}
+
+#footerContainer>div {
+    position: relative;
+    margin: 30px auto;
+    display: inline-block;
+}
+
+#footerContainer a {
+    color: #005e95;
+}
+
+#content {
+    min-height: 300px;
+    min-width: 320px;
+    margin: auto;
+    padding: 0;
+}
+
+#contentTitle {
+    margin: auto;
+    background-image: url(../images/gallery_banner.jpg);
+}
+
+#envirName {
+    display: block;
+    width: 80%;
+    max-width: 1200px;
+    margin: auto;
+    color: white;
+    font-size: 33px;
+    padding: 10px 0px 10px 0px;
+}
+
+#naviContainer {
+    display: block;
+    width: 80%;
+    max-width: 1200px;
+    margin: auto;
+}
+
+#contentNavi {
+    float: left;
+    position: relative;
+    padding: 10px 0px 5px 0px;
+    font-size: 16px;
+}
+
+#contentNavi a,
+#contentNavi2 a {
+    padding: 5px 10px 5px 10px;
+    text-decoration: none;
+}
+
+#contentNavi2 {
+    padding: 10px 0px 5px 0px;
+    text-align: right;
+}
+
+.naviActive {
+    background-color: white;
+    color: black;
+}
+
+.naviInactive {
+    background-color: rgba(0, 0, 0, 0.333);
+    color: white;
+}
+
+.naviInactive:hover {
+    background-image: linear-gradient(to top, transparent 94%, #fff 96%, #fff 100%);
+}
+
+#statusDescrip {
+    width: 80%;
+    max-width: 1200px;
+    margin: 10px auto 10px auto;
+    font-size: 1.3rem;
+    text-align: center;
+}
+
+#buttonGroup {
+    overflow: auto;
+    width: 80%;
+    max-width: 1200px;
+    margin: 20px auto 10px auto;
+    text-align: center;
+    font-size: 1rem;
+}
+
+#buttonGroup div {
+    background-color: rgb(255, 255, 255);
+    border: 1px solid #11a1f5;
+    color: rgb(0, 0, 0);
+    padding: 5px 10px 8px 10px;
+    cursor: pointer;
+}
+
+#buttonGroup div:nth-child(1) {
+    float: left;
+    border-radius: 5px 0 0 5px;
+}
+
+#buttonGroup div:nth-child(2) {
+    float: left;
+    border-left: none;
+    border-radius: 0 5px 5px 0;
+}
+
+#buttonGroup div:nth-child(3) {
+    float: right;
+    border-left: 0;
+    border-radius: 0 5px 5px 0;
+}
+
+#buttonGroup div:nth-child(4),
+#buttonGroup div:nth-child(5) {
+    float: right;
+    border-left: 0;
+}
+
+#buttonGroup div:nth-child(6) {
+    float: right;
+    border-radius: 5px 0 0 5px;
+}
+
+#buttonGroup div:hover {
+    background-color: #ace1ff;
+}
+
+#buttonGroup .buttonSelected {
+    box-shadow: inset 1px 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+#contentPane {
+    overflow: auto;
+    width: 80%;
+    max-width: 1200px;
+    margin: auto;
+    min-height: 400px;
+    text-align: center;
+}
+
+#contentPane .areaCard {
+    margin: 10px 20px 10px 20px;
+    padding: 10px 20px 10px 20px;
+    width: 200px;
+    box-shadow: 0 0 5px #005e95;
+    border: 3px;
+    position: relative;
+    display: inline-block;
+    text-align: center;
+    /* -webkit-animation: fadein 2s; */
+    /* Safari, Chrome and Opera > 12.1 */
+    /* -moz-animation: fadein 2s; */
+    /* Firefox < 16 */
+    /* -ms-animation: fadein 2s; */
+    /* Internet Explorer */
+    /* -o-animation: fadein 2s; */
+    /* Opera < 12.1 */
+    /* animation: fadein 2s; */
+}
+
+@keyframes fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@-moz-keyframes fadein {
+    /* Firefox < 16 */
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes fadein {
+    /* Safari, Chrome and Opera > 12.1 */
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@-ms-keyframes fadein {
+    /* Internet Explorer */
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@-o-keyframes fadein {
+    /* Opera < 12.1 */
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+#contentPane div a {
+    text-decoration: none;
+}
+
+.fieldTitle {
+    margin: 10px 0 10px 0;
+    font-size: 20px;
+    color: #005e95;
+    height: 50px;
+    font-weight: bold;
+}
+
+.areaCard.pass {
+    background-image: linear-gradient(to top, transparent 96%, #00a300 97%, #00a300 100%);
+}
+
+.areaCard.fail {
+    background-image: linear-gradient(to top, transparent 96%, #f74b4b 97%, #f74b4b 100%);
+}
+
+.areaCard.notest {
+    background-image: linear-gradient(to top, transparent 96%, #a3a3a3 97%, #a3a3a3 100%);
+}
+
+#contentPane .areaCard svg {
+    shape-rendering: geometricPrecision;
+}
+
+.successArc {
+    fill: #00a300;
+}
+
+.failArc {
+    fill: #ff3030;
+}
+
+.noneArc {
+    fill: #a1a1a1;
+}
+
+
+/*loading img*/
+
+.loader {
+    margin: 50px auto;
+    border: 10px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 10px solid #0079c1;
+    width: 100px;
+    height: 100px;
+    -ms-keyframes: spin 1s linear infinite;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@-ms-keyframes spin {
+    /*Internet Explorer*/
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+div.testListTip {
+    font: 15px "AvenirNextLTPro-Regular";
+    position: absolute;
+    text-align: center;
+    background: black;
+    box-shadow: 2px 2px 12px 8px rgba(0, 0, 0, 0.16);
+    -webkit-box-shadow: 2px 2px 12px 8px rgba(0, 0, 0, 0.16);
+    -moz-box-shadow: 2px 2px 12px 8px rgba(0, 0, 0, 0.16);
+    font-weight: bold;
+    padding: 8px;
+    border-radius: 2px;
+    z-index: 2;
+}
+
+div.testListTip:after {
+    top: 50%;
+    width: 10px;
+    font-size: 10px;
+    line-height: 1;
+    color: black;
+    content: "\25C0 \FE0E";
+    position: absolute;
+}
+
+div.testListTip a {
+    text-decoration: none;
+    color: white;
+    line-height: 1.4rem;
+}
+
+
+/* Tree View */
+
+.treeNode circle {
+    stroke: steelblue;
+    stroke-width: 3px;
+}
+
+.treeNode text {
+    font: 15px sans-serif;
+    text-shadow: 0 1px 0 #fff, 0 -1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff;
+}
+
+.treeLink {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 2px;
+}
+
+
+/* Circle Pack View*/
+
+.circlePacknode {
+    cursor: pointer;
+}
+
+.circlePacknode:hover {
+    stroke: rgb(255, 255, 255);
+    stroke-width: 2px;
+}
+
+.circlePacknode--leaf:hover {
+    stroke: rgb(255, 255, 255);
+    stroke-width: 2px;
+}
+
+.circlePacklabel {
+    font: 1rem "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-anchor: middle;
+    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+}
+
+.circlePacklabel,
+.circlePacknode--root {
+    pointer-events: none;
+}
+
+
+/* Sunburst View*/
+
+.sunburstPath {
+    stroke: #fff;
+}
+
+.sunburstPath.testPass {
+    fill: #a6f3a6;
+}
+
+.sunburstPath.testPass:hover {
+    fill: #00a300;
+}
+
+.sunburstPath.testFail {
+    fill: #f8cbcb;
+}
+
+.sunburstPath.testFail:hover {
+    fill: #ff3030;
+}
+
+.sunburstPath.norun {
+    fill: #e4e4e4;
+}
+
+.sunburstPath.norun:hover {
+    fill: #bebebe;
+}
+
+
+/* Ordinary View*/
+
+.ordinaryCard {
+    margin: 10px 20px 10px 20px;
+    padding: 10px 20px 10px 20px;
+    box-shadow: 0 0 5px #005e95;
+    border: 3px;
+    min-width: 340px;
+    -webkit-animation: fadein 0.5s;
+    -moz-animation: fadein 0.5s;
+    -ms-animation: fadein 0.5s;
+    -o-animation: fadein 0.5s;
+    animation: fadein 0.5s;
+}
+
+.ordinaryCard.toggled {
+    display: none;
+}
+
+.ordinaryCard .fieldTitle div {
+    /* margin: 0 20px 0 20px; */
+    padding: 0 10px 0 10px;
+}
+
+.ordinaryCard .expanded {
+    -webkit-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+}

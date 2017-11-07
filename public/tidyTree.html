@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8" />
+    <script src="js/d3.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <title></title>
+    <link href="css/charts.css" rel="stylesheet" />
+    <style>
+        .node circle {
+            fill: #999;
+        }
+
+        .node text {
+            font: 1rem sans-serif;
+        }
+
+        .node--internal circle {
+            fill: #555;
+        }
+
+        .node--internal text {
+            text-shadow: 0 1px 0 #fff, 0 -1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff;
+        }
+
+        .link {
+            fill: none;
+            stroke: #555;
+            stroke-opacity: 0.4;
+            stroke-width: 1.5px;
+        }
+    </style>
+</head>
+
+<body>
+    <svg width="1000" height="800"></svg>
+    <script>
+        var svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height"),
+            g = svg.append("g").attr("transform", "translate(100,0)");
+
+        var tree = d3.tree()
+            .size([height, width - 260]);
+
+        var stratify = d3.stratify()
+            .parentId(function (d) {
+                return d.id.substring(0, d.id.lastIndexOf("."));
+            });
+
+        d3.json("getTestName", function (error, root) {
+            if (error) throw error;
+            var tempObj = {
+                testName: "QA Category",
+                child: root
+            }
+            tempObj = d3.hierarchy(tempObj,  function children(d) {
+                return d.child;
+            })
+
+            var link = g.selectAll(".link")
+                .data(tree(tempObj).links())
+                .enter().append("path")
+                .attr("class", "link")
+                .attr("d", d3.linkHorizontal()
+                    .x(function (d) {
+                        return d.y;
+                    })
+                    .y(function (d) {
+                        return d.x;
+                    }));
+
+            var node = g.selectAll(".node")
+                .data(tempObj.descendants())
+                .enter().append("g")
+                .attr("class", function (d) {
+                    return "node" + (d.children ? " node--internal" : " node--leaf");
+                })
+                .attr("transform", function (d) {
+                    return "translate(" + d.y + "," + d.x + ")";
+                })
+
+            node.append("circle")
+                .attr("r", 2.5);
+
+            node.append("text")
+                .attr("dy", 3)
+                .attr("x", function (d) {
+                    return d.children ? -8 : 8;
+                })
+                .style("text-anchor", function (d) {
+                    return d.children ? "end" : "start";
+                })
+                .text(function (d) {
+                    return d.data.testName;
+                });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+node_modules/
+data/journal/
+data/diagnostic.data/
+data/log/mongod.*
+data/*.wt
+data/*.lock
+data/*.bson
+data/*.turtle
+data/WiredTiger

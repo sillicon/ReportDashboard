@@ -1,0 +1,76 @@
+﻿@font-face {
+    font-family: 'AvenirNextLTPro-Regular';
+    src: url('../fonts/AvenirNextLTPro-Regular.ttf') format('embedded-opentype'), url('../fonts/AvenirNextLTPro-Regular.woff') format('woff');
+}
+
+body {
+    font-family: "AvenirNextLTPro-Regular", Helvetica, Arial, sans-serif;
+    position: relative;
+    text-align: center;
+}
+
+svg {
+    position: center;
+    margin: auto;
+}
+
+.passBar {
+    fill: #a6f3a6;
+}
+
+.passBar:hover {
+    fill: #31c631;
+}
+
+.failBar {
+    fill: #f8cbcb;
+}
+
+.failBar:hover {
+    fill: #f75656;
+}
+
+.grid {
+    stroke: white;
+    stroke-width: 2px;
+}
+
+.gridDomain {
+    display: none;
+}
+
+.xAxis {
+    font: 15px "AvenirNextLTPro-Regular";
+    shape-rendering: crispEdges;
+}
+
+.yAxis {
+    font: 15px "AvenirNextLTPro-Regular";
+    shape-rendering: crispEdges;
+}
+
+div.tooltip {
+    font: 15px "AvenirNextLTPro-Regular";
+    position: absolute;
+    text-align: center;
+    background: #005e95;
+    pointer-events: none;
+    font-weight: bold;
+    padding: 8px;
+    color: #fff;
+    line-height: 1;
+    border-radius: 2px;
+}
+
+div.tooltip:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    font-size: 10px;
+    line-height: 1;
+    color: #005e95;
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}

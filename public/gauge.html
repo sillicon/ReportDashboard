@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <script src="js/d3.min.js"></script>
+    <title></title>
+    <link href="css/charts.css" rel="stylesheet" />
+    <style>
+        .successArc {
+            fill: #00a300;
+        }
+        .failArc{
+            fill: #ff3030;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var tempArray = 1;
+        
+        var margin = {top: 50, right: 50, bottom: 50, left: 50},
+            svgWidth = 400,
+            svgHeight = 400,
+            width = svgWidth - margin.left - margin.right,
+            height = svgHeight - margin.top - margin.bottom;
+        
+        var div = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0); // create placeholder for tooltip
+
+        svg = d3.select('body')
+            .append("svg")
+            .attr("style", "width: " + svgWidth + "px\; height: " + svgHeight + "px\;");
+        var successArc = svg.append('path')
+            .attr('class', 'successArc')
+            .attr('transform', 'translate('+ (width/2 + margin.left) + ','+ (height/2 + margin.top) + ')');
+        var failArc = svg.append('path')
+            .attr('class', 'failArc')
+            .attr('transform', 'translate('+ (width/2 + margin.left) + ','+ (height/2 + margin.top) + ')');
+        var arc1 = d3.arc()
+            .innerRadius(width / 2 - 30)
+            .outerRadius(width / 2)
+            .startAngle(-Math.PI*3/4);
+        var arc2 = d3.arc()
+            .innerRadius(width / 2 - 30)
+            .outerRadius(width / 2)
+            .startAngle(-Math.PI*3/4 + tempArray * Math.PI * 3 / 2);
+        var temp1 = 0,
+            temp2 = 0;
+        var timer = setInterval(function() {
+            if (temp1 < tempArray * 100) {
+                arc1.endAngle(-Math.PI*3/4 + temp1/100 * Math.PI * 3 / 2);
+                successArc.attr('d', arc1);
+                temp1++;
+            } else if (temp1 >= tempArray * 100 && temp2 == 0) {
+                arc1.endAngle(-Math.PI*3/4 + tempArray * Math.PI * 3 / 2);
+                successArc.attr('d', arc1);
+                arc2.endAngle(-Math.PI*3/4 + (tempArray + temp2/100) * Math.PI * 3 / 2);
+                failArc.attr('d', arc2);
+                temp2++;
+            } else if (temp1 + temp2 < 100) {
+                arc2.endAngle(-Math.PI*3/4 + (tempArray + temp2/100) * Math.PI * 3 / 2);
+                failArc.attr('d', arc2);
+                temp2++;
+            } else if (temp1 + temp2 == 100) {
+                arc2.endAngle(Math.PI*3/4);
+                failArc.attr('d', arc2);
+                clearInterval(timer);
+            }
+        }, 10);
+        successArc.on("mouseover", function() {
+            arc1.outerRadius(width / 2 + 10);
+            successArc.attr('d', arc1);
+        }).on("mouseout", function() {
+            arc1.outerRadius(width / 2);
+            successArc.attr('d', arc1);
+        });
+        failArc.on("mouseover", function() {
+            arc2.outerRadius(width / 2 + 10);
+            failArc.attr('d', arc2);
+        }).on("mouseout", function() {
+            arc2.outerRadius(width / 2);
+            failArc.attr('d', arc2);
+        });
+    </script>
+</body>
+</html>
