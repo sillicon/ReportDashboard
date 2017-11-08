@@ -371,12 +371,12 @@ function createCharts(inputArray, envir) {
 
     var minDate = new Date(Date.parse(d3.min(fullArray, function (d) {
             return d3.extent(d, function (p) {
-                return toUTCDate(new Date(p.date))
+                return toLocaleDate(new Date(p.date))
             })[0]
         }))),
         maxDate = new Date(Date.parse(d3.max(fullArray, function (d) {
             return d3.extent(d, function (p) {
-                return toUTCDate(new Date(p.date))
+                return toLocaleDate(new Date(p.date))
             })[1]
         }))),
         dateRange = Math.round((maxDate - minDate) / 1000 / 3600 / 24);
@@ -395,14 +395,14 @@ function createCharts(inputArray, envir) {
     var svg = d3.select("#charts").append("svg")
         .attr("id", envir)
         .attr("style", "width: " + svgWidth + "px\; height: " + svgHeight + "px\;");
-    var x = d3.scaleUtc().range([0, width])
+    var x = d3.scaleTime().range([0, width])
         .domain([minDate, calculateDays(maxDate, 1)]);
     var y = d3.scaleBand()
         .range([height, 0])
         .padding(0.1)
         .domain(category);
     var xAxis = d3.axisBottom(x);
-    xAxis.tickValues(createTickValues(minDate, calculateDays(maxDate, 1), Math.round(Math.max(80 * dateRange / svgWidth, 1)))).tickFormat(d3.utcFormat("%m-%d"));
+    xAxis.tickValues(createTickValues(minDate, calculateDays(maxDate, 1), Math.round(Math.max(80 * dateRange / svgWidth, 1)))).tickFormat(d3.timeFormat("%m-%d"));
 
     var yAxis = d3.axisLeft(y);
     var zoom = d3.zoom()
@@ -439,7 +439,7 @@ function createCharts(inputArray, envir) {
 
     //add grid lines
     var gridX = d3.axisTop(x);
-    gridX.ticks(d3.utcDay.every(Math.round(Math.max(80 * dateRange / svgWidth, 1))))
+    gridX.ticks(d3.timeDay.every(Math.round(Math.max(80 * dateRange / svgWidth, 1))))
         .tickSize(-height)
         .tickFormat("");
     var gridLine = svg.append("g")
@@ -493,16 +493,16 @@ function createCharts(inputArray, envir) {
     function drawBar(svgGroup, xScale, result) {
         svgGroup.attr("width", function (d) {
                 if (result === "pass") {
-                    return xScale(calculateDays(toUTCDate(d.date), d.ratio)) - xScale(toUTCDate(d.date));
+                    return xScale(calculateDays(toLocaleDate(d.date), d.ratio)) - xScale(toLocaleDate(d.date));
                 } else {
-                    return xScale(calculateDays(toUTCDate(d.date), 1 - d.ratio)) - xScale(toUTCDate(d.date));
+                    return xScale(calculateDays(toLocaleDate(d.date), 1 - d.ratio)) - xScale(toLocaleDate(d.date));
                 }
             })
             .attr("transform", function (d) {
                 if (result === "pass") {
-                    return "translate(" + (margin.left + xScale(toUTCDate(d.date))) + ", 0)";
+                    return "translate(" + (margin.left + xScale(toLocaleDate(d.date))) + ", 0)";
                 } else {
-                    return "translate(" + (margin.left + xScale(calculateDays(toUTCDate(d.date), d.ratio))) + ", 0)";
+                    return "translate(" + (margin.left + xScale(calculateDays(toLocaleDate(d.date), d.ratio))) + ", 0)";
                 }
             })
             .attr("height", barHeight)
@@ -722,30 +722,23 @@ function createCharts(inputArray, envir) {
 
     function calculateDays(date, number) {
         var calD = new Date(Date.parse(date));
-        calD.setUTCHours(Math.round(number * 24 - number * 24 % 1));
-        calD.setUTCMinutes(Math.round(number * 24 % 1 * 60));
+        calD.setHours(Math.round(number * 24 - number * 24 % 1));
+        calD.setMinutes(Math.round(number * 24 % 1 * 60));
         return calD;
     }
 
-    function toUTCDate(input) {
-        if (input instanceof Date) {
-            var tempDate = new Date(Date.parse(input));
-            if (input.getHours() !== 0) {
-                return tempDate;
-            }
-        } else {
-            var tempDate = new Date(input);
-        }
-        return new Date(Date.UTC(tempDate.getFullYear(), tempDate.getMonth(), tempDate.getDate()));
+    function toLocaleDate(input) {
+        var temp = new Date(input);
+        temp = new Date(temp.getTime() + temp.getTimezoneOffset() * 60000);
+        return temp;
     }
 
     function createTickValues(startDate, endDate, space) { // have to create own tick values since ticks restarts at the first day of the new month
         var dArr = [],
             step = 0;
-        while (!(calculateDays(startDate, step) > toUTCDate(endDate))) {
-            tempD = toUTCDate(calculateDays(startDate, step));
-            dArr.push(tempD);
-            step = step + space;
+        while ((calculateDays(startDate, step) <= endDate)) {
+            dArr.push(calculateDays(startDate, step));
+            step += space;
         }
         return dArr;
     }

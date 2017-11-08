@@ -113,7 +113,7 @@ function submitForm() {
             reportHive: document.getElementById("envir2").value,
             reportBrowser: document.getElementById("browser").value,
             testID: document.getElementById("testName").value,
-            reportName: document.getElementById("testName").selectedOptions[0].innerText.replace(/\s+/g, ""),
+            reportName: document.getElementById("testName").options[document.getElementById("testName").selectedIndex].text.replace(/\s+/g, ""),
             reportHTML: reportHTML
         }
         if (document.getElementById("switchCheckbox").checked) {

@@ -113,7 +113,7 @@ select option:disabled {
 #backToForm {
     margin: 30px auto 30px auto !important;
     display: block !important;
-    float: unset !important;
+    float: none !important;
 }
 
 .buttonDisabled {

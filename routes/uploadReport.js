@@ -1,6 +1,7 @@
 ﻿var express = require('express');
 var path = require('path');
 var fs = require('fs');
+var moment = require('moment');
 var router = express.Router();
 
 router.post("/uploadReport", function (req, res) {
@@ -65,8 +66,8 @@ function getNowTime(str) {
 }
 
 function convertToUTC(dateStr) {
-    var temp = new Date(dateStr);
-    temp = new Date(temp.getTime() + temp.getTimezoneOffset() * 60000);
+    var temp = moment(dateStr, ["YYYY-MM-DD", "MM/DD/YYYY"]).toDate();
+    temp = new Date(temp.getTime() - temp.getTimezoneOffset() * 60000);
     return temp;
 }
 

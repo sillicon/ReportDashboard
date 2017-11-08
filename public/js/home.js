@@ -676,7 +676,10 @@ function createCirclePack(jsonObj) {
             }
         })
         .on("click", function (d) {
-            if (focus !== d) zoom(d), d3.event.stopPropagation()
+            if (focus !== d) {
+                zoom(d);
+                d3.event.stopPropagation();
+            }
             else if (!d.children && d.data.hasOwnProperty("cateName")) {
                 window.open(".\\report\\" + d.data.testName);
             };

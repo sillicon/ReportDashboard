@@ -1,5 +1,6 @@
 ﻿var express = require('express');
 var path = require('path');
+var moment = require('moment');
 var router = express.Router();
 
 router.get("/queryReports", function (req, res) { // new query with MongoDB
@@ -113,7 +114,7 @@ router.get("/getLatestReports", function (req, res) {
     var collection = db.collection('reportResult');
     var queryObj = {
         envirTested: req.query.envir || null,
-        testDate: new Date(new Date().toDateString())
+        testDate: convertToUTC(moment().format('YYYY-MM-DD'))
     };
     collection.find(queryObj).project({_id:0}).toArray().then(function (docs) {
         var cateCol = db.collection("reportCategory");
@@ -192,8 +193,8 @@ function queryValidator(inputParams, testObj) {
 }
 
 function convertToUTC(dateStr) {
-    var temp = new Date(dateStr);
-    temp = new Date(temp.getTime() + temp.getTimezoneOffset() * 60000);
+    var temp = moment(dateStr, ["YYYY-MM-DD", "MM/DD/YYYY"]).toDate();
+    temp = new Date(temp.getTime() - temp.getTimezoneOffset() * 60000);
     return temp;
 }
 
