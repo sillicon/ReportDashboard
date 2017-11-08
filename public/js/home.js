@@ -637,7 +637,8 @@ function createCirclePack(jsonObj) {
     var svgHeight = svgWidth;
     var svg = d3.select("#contentPane").append("svg")
         .attr("height", svgHeight)
-        .attr("width", svgWidth);
+        .attr("width", svgWidth)
+        .style("overflow", "hidden");
     var margin = 20,
         diameter = +svg.attr("width"),
         g = svg.append("g").attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
