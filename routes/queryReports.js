@@ -114,7 +114,7 @@ router.get("/getLatestReports", function (req, res) {
     var collection = db.collection('reportResult');
     var queryObj = {
         envirTested: req.query.envir || null,
-        testDate: convertToUTC(moment().format('YYYY-MM-DD'))
+        testDate: convertToUTC(req.query.testDate)
     };
     collection.find(queryObj).project({_id:0}).toArray().then(function (docs) {
         var cateCol = db.collection("reportCategory");

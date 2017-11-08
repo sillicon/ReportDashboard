@@ -62,6 +62,12 @@ function changeView(element) {
 }
 
 function checkTestArea() {
+    var dayNow = new Date();
+    var tempStr = dayNow.getFullYear() + "-" + (dayNow.getMonth() + 1) + "-" + dayNow.getDate();
+    var requestParams = {
+        envir: document.querySelector(".naviActive").textContent,
+        testDate: tempStr
+    }
     var envir = document.querySelector(".naviActive").textContent;
     var xmlHTTP = new XMLHttpRequest();
     xmlHTTP.onreadystatechange = function () {
@@ -176,7 +182,7 @@ function checkTestArea() {
             }
         }
     }
-    xmlHTTP.open("GET", "./getLatestReports?envir=" + envir);
+    xmlHTTP.open("GET", "./getLatestReports" + formatParams(requestParams));
     xmlHTTP.send();
     document.querySelector("#contentPane").innerHTML = "<div id =\"loader\" class=\"loader\"></div>";
 }
