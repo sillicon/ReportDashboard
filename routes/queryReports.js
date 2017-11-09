@@ -40,7 +40,7 @@ router.get("/queryReports", function (req, res) { // new query with MongoDB
                     $eq: convertToUTC(req.query.reportDate)
                 };
             } else {
-                res.status(400).send('Bad Request, no query date input.');
+                res.status(400).send('Bad Request, no date input.');
             }
         } else {
             if (req.query.startDate === "null") {
@@ -56,54 +56,64 @@ router.get("/queryReports", function (req, res) { // new query with MongoDB
             }
         }
         var result = [[], [], []]
-        collection.find(queryObj).project({_id:0}).toArray().then(function (docs) {
-            var cateCol = db.collection("reportCategory");
-            getIDRef(cateCol, function (idRef) {
-                docs.forEach(function(element) {
-                    element.testName = idRef[element.testID];
-                    if (element.envirTested == "Envir1") {
-                        result[0].push(element);
-                    } else if (element.envirTested == "Envir2") {
-                        result[1].push(element);
+        collection.find(queryObj).project({_id:0}).toArray(function (err, docs) {
+            if (err) {
+                console.log(err);
+                res.status(500).send("Database query failed!");
+            } else {
+                var cateCol = db.collection("reportCategory");
+                getIDRef(cateCol, function (err, idRef) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500).send("Database query failed!");
                     } else {
-                        result[2].push(element);
-                    }
-                }, this);
-                for (var i = 0; i < result.length; i++) {
-                    result[i].sort(function (a, b) {
-                        if (req.query.sort == "Date") {
-                            if (a.testDate < b.testDate) {
-                                return -1;
-                            } else if (a.testDate > b.testDate) {
-                                return 1;
+                        docs.forEach(function(element) {
+                            element.testName = idRef[element.testID];
+                            if (element.envirTested == "Envir1") {
+                                result[0].push(element);
+                            } else if (element.envirTested == "Envir2") {
+                                result[1].push(element);
                             } else {
-                                if (a.testName < b.testName) {
-                                    return -1;
-                                } else if (a.testName > b.testName) {
-                                    return 1;
-                                } else {
-                                    return 0;
-                                }
+                                result[2].push(element);
                             }
-                        } else {
-                            if (a.testName < b.testName) {
-                                return -1;
-                            } else if (a.testName > b.testName) {
-                                return 1;
-                            } else {
-                                if (a.testDate < b.testDate) {
-                                    return -1;
-                                } else if (a.testDate > b.testDate) {
-                                    return 1;
+                        }, this);
+                        for (var i = 0; i < result.length; i++) {
+                            result[i].sort(function (a, b) {
+                                if (req.query.sort == "Date") {
+                                    if (a.testDate < b.testDate) {
+                                        return -1;
+                                    } else if (a.testDate > b.testDate) {
+                                        return 1;
+                                    } else {
+                                        if (a.testName < b.testName) {
+                                            return -1;
+                                        } else if (a.testName > b.testName) {
+                                            return 1;
+                                        } else {
+                                            return 0;
+                                        }
+                                    }
                                 } else {
-                                    return 0;
+                                    if (a.testName < b.testName) {
+                                        return -1;
+                                    } else if (a.testName > b.testName) {
+                                        return 1;
+                                    } else {
+                                        if (a.testDate < b.testDate) {
+                                            return -1;
+                                        } else if (a.testDate > b.testDate) {
+                                            return 1;
+                                        } else {
+                                            return 0;
+                                        }
+                                    }
                                 }
-                            }
+                            });
                         }
-                    });
-                }
-                res.send(result);
-            })
+                        res.send(result);
+                    }
+                });
+            }
         });
     }
 });
@@ -116,70 +126,85 @@ router.get("/getLatestReports", function (req, res) {
         envirTested: req.query.envir || null,
         testDate: convertToUTC(req.query.testDate)
     };
-    collection.find(queryObj).project({_id:0}).toArray().then(function (docs) {
-        var cateCol = db.collection("reportCategory");
-        getIDRef(cateCol, function (idRef) {
-            docs.forEach(function(element) {
-                element.testName = idRef[element.testID];
-            }, this);
-            docs.sort(function (a, b) {
-                if (a.testName < b.testName) {
-                    return -1;
-                } else if (a.testName > b.testName) {
-                    return 1;
+    collection.find(queryObj).project({_id:0}).toArray(function (err, docs) {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Database query failed!");
+        } else {
+            var cateCol = db.collection("reportCategory");
+            getIDRef(cateCol, function (err, idRef) {
+                if (err) {
+                    console.log(err);
+                    res.status(500).send("Database query failed!");
                 } else {
-                    if (a.fileName < b.fileName) {
-                        return -1;
-                    } else if (a.fileName > b.fileName) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
+                    docs.forEach(function(element) {
+                        element.testName = idRef[element.testID];
+                    }, this);
+                    docs.sort(function (a, b) {
+                        if (a.testName < b.testName) {
+                            return -1;
+                        } else if (a.testName > b.testName) {
+                            return 1;
+                        } else {
+                            if (a.fileName < b.fileName) {
+                                return -1;
+                            } else if (a.fileName > b.fileName) {
+                                return 1;
+                            } else {
+                                return 0;
+                            }
+                        }
+                    });
+                    res.send(docs);
                 }
             });
-            res.send(docs);
-        });
+        }
     });
-
 });
 
 router.get("/getIDRef", function (req, res) {
     var db = req.app.get('dbConnection');
     // Get the documents collection
     var collection = db.collection('reportCategory');
-    getIDRef(collection, function (result) {
-        res.send(result);
-    })
-})
+    getIDRef(collection, function (err, result) {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Database query failed!");
+        } else {
+            res.send(result);
+        }
+    });
+});
 
 function getIDRef(dbCol, cb) {
     dbCol.find().toArray(function (err, docs) {
         var returnObj = {};
         if (err) {
-            throw err;
-        }
-        docs.forEach(function(element) {
-            var tempObj = [element];
-            var arr = [0];
-            if (element.child != null) {
-                while (tempObj.length > 0) {
-                    if (arr[arr.length - 1] <= tempObj[tempObj.length - 1].child.length - 1) {
-                        if (tempObj[tempObj.length - 1].child[arr[arr.length - 1]].child != null) {
-                            tempObj.push(tempObj[tempObj.length - 1].child[arr[arr.length - 1]]);
-                            arr.push(0);
+            cb(err, returnObj);
+        } else {
+            docs.forEach(function(element) {
+                var tempObj = [element];
+                var arr = [0];
+                if (element.child != null) {
+                    while (tempObj.length > 0) {
+                        if (arr[arr.length - 1] <= tempObj[tempObj.length - 1].child.length - 1) {
+                            if (tempObj[tempObj.length - 1].child[arr[arr.length - 1]].child != null) {
+                                tempObj.push(tempObj[tempObj.length - 1].child[arr[arr.length - 1]]);
+                                arr.push(0);
+                            } else {
+                                returnObj[tempObj[tempObj.length - 1].child[arr[arr.length - 1]].id] = tempObj[tempObj.length - 1].child[arr[arr.length - 1]].testName;
+                                arr[arr.length - 1]++;
+                            }
                         } else {
-                            returnObj[tempObj[tempObj.length - 1].child[arr[arr.length - 1]].id] = tempObj[tempObj.length - 1].child[arr[arr.length - 1]].testName;
+                            arr.pop();
+                            tempObj.pop();
                             arr[arr.length - 1]++;
                         }
-                    } else {
-                        arr.pop();
-                        tempObj.pop();
-                        arr[arr.length - 1]++;
                     }
                 }
-            }
-        }, this);
-        cb(returnObj);
+            }, this);
+            cb(err, returnObj);
+        }
     });
 }
 

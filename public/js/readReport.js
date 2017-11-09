@@ -87,7 +87,9 @@ function onFormLoad() {
                     cateSel.appendChild(option);
                 }
             }
-
+        } else if (this.readyState == 4) {
+            document.querySelector("#holderbox").innerHTML = this.responseText;
+            document.querySelector("#reportList").innerHTML = this.responseText;
         }
     };
     xmlHTTP.open("GET", "./getTestName");

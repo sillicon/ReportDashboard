@@ -58,6 +58,8 @@
                     testCate.appendChild(option);
                 }
             }
+        } else if (this.readyState == 4) {
+            document.querySelector("#holderbox").innerHTML = this.responseText;
         }
     };
     xmlHTTP.open("GET", "./getTestName");

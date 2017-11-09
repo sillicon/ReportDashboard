@@ -5,38 +5,96 @@ var moment = require('moment');
 var router = express.Router();
 
 router.post("/uploadReport", function (req, res) {
-    var db = req.app.get('dbConnection');
-    var collection = db.collection('reportResult');
-    var inputHTML = req.body.reportHTML;
-    var dateWithTime = getNowTime(req.body.reportDate);
-    var fileName = req.body.reportName + dateWithTime + ".html";
-    var reportFilePath = path.join(path.dirname(__dirname), "public", "report", fileName);
-    var insertObj = {
-        testID: parseInt(req.body.testID),
-        testDate: convertToUTC(req.body.reportDate),
-        testResult: req.body.reportResult,
-        fileName: fileName,
-        browser: req.body.reportBrowser,
-        envirTested: req.body.reportEnvi,
-        hiveTested: req.body.reportHive
-    }
-    fs.closeSync(fs.openSync(reportFilePath, 'w'));
-    if (req.body.reportName.indexOf("SharingAPI") > -1) {
-        inputHTML = "<body style='white-space: pre-wrap;'>" + inputHTML + "</body>";
-    }
-    fs.writeFile(reportFilePath, inputHTML, 'utf8', function write(err) {
-        if (err) {
-            res.send("Copy html into database failed!");
-            throw err;
+    if (!req.body.hasOwnProperty("reportEnvi") || !req.body.hasOwnProperty("testID") || !req.body.hasOwnProperty("reportDate") || !req.body.hasOwnProperty("reportHTML") || !req.body.hasOwnProperty("reportResult")) {
+        res.status(400).send("Bad Request. Missing important request parameter.");
+    } else {
+        var db = req.app.get('dbConnection');
+        var collection = db.collection('reportResult');
+        var inputHTML = req.body.reportHTML;
+        var dateWithTime = getNowTime(req.body.reportDate);
+        if (req.body.hasOwnProperty("reportName")) {
+            var fileName = req.body.reportName + dateWithTime + ".html";
+            writeInData(fileName);
+        } else {
+            var tempCol = db.collection('reportCategory');
+            findTestName(tempCol, parseInt(req.body.testID), function (err, returnName) {
+                if (err) {
+                    res.status(500).send("Database query failed!");
+                } else {
+                    var fileName = returnName.replace(/\s+/g, "") + dateWithTime + ".html";
+                    writeInData(fileName);
+                }
+            });
         }
-        collection.insertOne(insertObj).then(function(result) {
-            res.send("Upload Complete!");
-        }, function (err) {
-            res.send(err);
-            throw err;
-        })
+    }
+
+    function writeInData(fileName) {
+        var reportFilePath = path.join(path.dirname(__dirname), "public", "report", fileName);
+        var insertObj = {
+            testID: parseInt(req.body.testID),
+            testDate: convertToUTC(req.body.reportDate),
+            testResult: req.body.reportResult,
+            fileName: fileName,
+            browser: req.body.reportBrowser,
+            envirTested: req.body.reportEnvi,
+            hiveTested: req.body.reportHive
+        }
+        fs.closeSync(fs.openSync(reportFilePath, 'w'));
+        if (fileName.indexOf("SharingAPI") > -1) {
+            inputHTML = "<body style='white-space: pre-wrap;'>" + inputHTML + "</body>";
+        }
+        fs.writeFile(reportFilePath, inputHTML, 'utf8', function write(err) {
+            if (err) {
+                res.status(500).send("Write html into database failed!");
+                throw err;
+            }
+            collection.insertOne(insertObj).then(function (result) {
+                res.send("Upload Complete!");
+            }, function (err) {
+                res.send(err);
+                throw err;
+            })
+        });
+    }
+});
+
+function findTestName(dbCol, inputID, cb) {
+    dbCol.find().toArray(function (err, docs) {
+        if (err) {
+            console.log(err);
+            cb(err, tempStr);
+        } else {
+            var tempStr = "";
+            for (var i = 0; i < docs.length; i++) {
+                var element = docs[i];
+                var tempObj = [element];
+                var arr = [0];
+                if (element.child != null && tempStr === "") {
+                    while (tempObj.length > 0) {
+                        if (arr[arr.length - 1] <= tempObj[tempObj.length - 1].child.length - 1) {
+                            if (tempObj[tempObj.length - 1].child[arr[arr.length - 1]].child != null) {
+                                tempObj.push(tempObj[tempObj.length - 1].child[arr[arr.length - 1]]);
+                                arr.push(0);
+                            } else {
+                                if (tempObj[tempObj.length - 1].child[arr[arr.length - 1]].id === inputID) {
+                                    tempStr = tempObj[tempObj.length - 1].child[arr[arr.length - 1]].testName;
+                                    break;
+                                } else {
+                                    arr[arr.length - 1]++;
+                                }
+                            }
+                        } else {
+                            arr.pop();
+                            tempObj.pop();
+                            arr[arr.length - 1]++;
+                        }
+                    }
+                }
+            }
+            cb(err, tempStr);
+        }
     });
-})
+}
 
 function getNowTime(str) {
     var tempDate = convertToUTC(str);

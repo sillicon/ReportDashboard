@@ -175,11 +175,15 @@ function checkTestArea() {
                             var element = fullList[i];
                             createCard(0, [], fullList[i]);
                         }
+                    } else if (this.readyState == 4) {
+                        document.querySelector("#contentPane").innerHTML = this.responseText;
                     }
                 }
                 getFullList.open("GET", "./getIDRef");
                 getFullList.send();
             }
+        } else if (this.readyState == 4) {
+            document.querySelector("#contentPane").innerHTML = this.responseText;
         }
     }
     xmlHTTP.open("GET", "./getLatestReports" + formatParams(requestParams));

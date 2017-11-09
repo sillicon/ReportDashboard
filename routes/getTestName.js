@@ -10,12 +10,11 @@ router.get("/getTestName", function (req, res) {
     // if don't want "_id" attribute: project({ _id: 0, 'child._id': 0, 'child.child._id': 0})
     collection.find().toArray(function (err, docs) {
         if (err) {
-            res.status(500).send({
-                error: 'Database Query failed!'
-            });
-            throw (err);
+            console.log(err);
+            res.status(500).send("Database Query failed!");
+        } else {
+            res.send(docs);
         }
-        res.send(docs);
     });
 });
 
