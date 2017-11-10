@@ -222,12 +222,13 @@ body {
 }
 
 #buttonGroup div:nth-child(4),
-#buttonGroup div:nth-child(5) {
+#buttonGroup div:nth-child(5),
+#buttonGroup div:nth-child(6) {
     float: right;
     border-left: 0;
 }
 
-#buttonGroup div:nth-child(6) {
+#buttonGroup div:nth-child(7) {
     float: right;
     border-radius: 5px 0 0 5px;
 }
@@ -537,4 +538,24 @@ div.testListTip a {
 .ordinaryCard .expanded {
     -webkit-transform: rotate(-90deg);
     transform: rotate(-90deg);
+}
+
+
+/* Treemap View*/
+
+.treemapNode text {
+    font-size: 20px;
+}
+
+.treemapNode.reportName {
+    font-size: 14px;
+}
+
+.treemapNode rect {
+    shape-rendering: crispEdges;
+}
+
+.treemapNode--hover rect {
+    stroke: rgb(251, 255, 1);
+    stroke-width: 2px;
 }

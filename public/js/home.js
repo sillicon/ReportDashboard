@@ -44,17 +44,20 @@ function changeView(element) {
         document.querySelector("#sunburstView").style.display = "none";
         document.querySelector("#circlePackView").style.display = "none";
         document.querySelector("#treeView").style.display = "none";
+        document.querySelector("#treemapView").style.display = "none";
         document.querySelector("#ordinaryView").style.display = "none";
     } else if (element.id == "categoryView") {
         document.querySelector("#cardView").setAttribute("class", "");
         document.querySelector("#sunburstView").style.display = "block";
         document.querySelector("#circlePackView").style.display = "block";
         document.querySelector("#treeView").style.display = "block";
+        document.querySelector("#treemapView").style.display = "block";
         document.querySelector("#ordinaryView").style.display = "block";
     } else {
         document.querySelector("#sunburstView").setAttribute("class", "");
         document.querySelector("#circlePackView").setAttribute("class", "");
         document.querySelector("#treeView").setAttribute("class", "");
+        document.querySelector("#treemapView").setAttribute("class", "");
         document.querySelector("#ordinaryView").setAttribute("class", "");
     }
     element.setAttribute("class", "buttonSelected");
@@ -124,8 +127,9 @@ function checkTestArea() {
                     }
                     document.querySelector("#contentPane").innerHTML = "";
                     if (document.querySelector("#treeView").className == "buttonSelected") {
-                        // createTree(tempObj);
                         createCollapseTree(tempObj);
+                    } else if (document.querySelector("#treemapView").className == "buttonSelected") {
+                        createTreemap(tempObj);
                     } else if (document.querySelector("#circlePackView").className == "buttonSelected") {
                         createCirclePack(tempObj);
                     } else if (document.querySelector("#sunburstView").className == "buttonSelected") {
@@ -976,6 +980,169 @@ function createOrdinary(jsonObj) {
         }
         div.appendChild(testName);
         return div;
+    }
+}
+
+function createTreemap(jsonObj) {
+    var tempStr = getComputedStyle(document.querySelector("#contentPane")).width;
+    var svgWidth = parseInt(tempStr.substr(0, tempStr.length - 2)) - 50;
+    var svgHeight = svgWidth + 100;
+    var svg = d3.select("#contentPane").append("svg")
+        .attr("width", svgWidth)
+        .attr("height", svgHeight)
+
+    var color = d3.scaleLinear()
+        .domain([0, 7])
+        .range(["hsl(193, 50%, 80%)", "hsl(215,80%,40%)"])
+        .interpolate(d3.interpolateHcl);
+
+    var treemap = d3.treemap()
+        .size([svgWidth, svgHeight])
+        .paddingOuter(5)
+        .paddingTop(32)
+        .paddingInner(5)
+        .tile(d3.treemapBinary);
+
+    jsonObj = d3.hierarchy(jsonObj, function children(d) {
+        return d.child;
+    });
+    jsonObj.sum(function (d) {
+        if (d.child != null) {
+            return 0;
+        }
+        return 1;
+    });
+
+    treemap(jsonObj);
+
+    var cell = svg
+        .selectAll(".treemapNode")
+        .data(jsonObj.descendants())
+        .enter().append("g")
+        .attr("transform", function (d) {
+            return "translate(" + d.x0 + "," + d.y0 + ")";
+        })
+        .attr("class", "treemapNode")
+        .each(function (d) {
+            d.node = this;
+        })
+        .on("mouseover", hovered(true))
+        .on("mouseout", hovered(false))
+        .on("click", click);
+
+    cell.append("rect")
+        .attr("id", function (d) {
+            if (d.data.hasOwnProperty("cateName")) {
+                return "rect-" + encodeURI(d.data.testName.substring(0, d.data.testName.lastIndexOf(".")));
+            }
+            return "rect-" + encodeURI(d.data.testName);
+        })
+        .attr("width", function (d) {
+            return d.x1 - d.x0;
+        })
+        .attr("height", function (d) {
+            return d.y1 - d.y0;
+        })
+        .style("fill", function (d) {
+            if (d.data.hasOwnProperty("cateName")) {
+                if (d.data.testResult == "Pass") {
+                    return "#00a300";
+                }
+                return "#ff3030";
+            } else {
+                return color(d.depth);
+            }
+        });
+
+    cell.append("clipPath")
+        .attr("id", function (d) {
+            if (d.data.hasOwnProperty("cateName")) {
+                return "clip-" + encodeURI(d.data.testName.substring(0, d.data.testName.lastIndexOf(".")));
+            }
+            return "clip-" + encodeURI(d.data.testName);
+        })
+        .append("use")
+        .attr("xlink:href", function (d) {
+            if (d.data.hasOwnProperty("cateName")) {
+                return "#rect-" + encodeURI(d.data.testName.substring(0, d.data.testName.lastIndexOf(".")));
+            }
+            return "#rect-" + encodeURI(d.data.testName);
+        });
+
+    var label = cell.append("text")
+        .attr("class", "treemapNode")
+        .attr("clip-path", function (d) {
+            if (d.data.hasOwnProperty("cateName")) {
+                return "url(#clip-" + encodeURI(d.data.testName.substring(0, d.data.testName.lastIndexOf("."))) + ")";
+            }
+            return "url(#clip-" +encodeURI(d.data.testName) + ")";
+        });
+
+    label.filter(function (d) {
+            return d.children;
+        })
+        .selectAll("tspan")
+        .data(function (d) {
+            return [d.data.testName];
+        })
+        .enter().append("tspan")
+        .attr("x", function (d, i) {
+            return i ? null : 5;
+        })
+        .attr("y", 20)
+        .text(function (d) {
+            return d;
+        });
+
+    label.filter(function (d) {
+            return !d.children;
+        })
+        .selectAll("tspan")
+        .data(function (d) {
+            if (d.data.hasOwnProperty("cateName")) {
+                return d.data.testName.substring(0, d.data.testName.lastIndexOf(".")).match(/[a-zA-Z]+|[0-9_]+/g);
+            }
+            return d.data.testName.split(/ /g);
+        })
+        .enter().append("tspan")
+        .attr("x", 5)
+        .attr("y", function (d, i) {
+            return 20 + i * 20;
+        })
+        .text(function (d) {
+            return d;
+        });
+    label.filter(function (d) {
+            return d.data.hasOwnProperty("cateName");
+        })
+        .attr("class", "treemapNode reportName")
+        .attr('cursor', 'pointer');
+
+    cell.append("title")
+        .text(function (d) {
+            return d.data.testName;
+        });
+
+    function hovered(hover) {
+        return function (d) {
+            d3.selectAll(d.ancestors().map(function (d) {
+                    return d.node;
+                }))
+                .classed("treemapNode--hover", hover)
+                .select("rect")
+                .attr("width", function (d) {
+                    return d.x1 - d.x0 - hover;
+                })
+                .attr("height", function (d) {
+                    return d.y1 - d.y0 - hover;
+                });
+        };
+    }
+
+    function click(d) {
+        if (!d.children && d.data.hasOwnProperty("cateName")) {
+            window.open(".\\report\\" + d.data.testName);
+        }
     }
 }
 

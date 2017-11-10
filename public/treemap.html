@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8" />
+    <script src="js/d3.min.js"></script>
+    <script src="js/d3-scale-chromatic.min.js"></script>
+    <title></title>
+    <link href="css/charts.css" rel="stylesheet" />
+    <style>
+        text {
+            font: 20px sans-serif;
+        }
+
+        .node rect {
+            shape-rendering: crispEdges;
+        }
+
+        .node--hover rect {
+            stroke: rgb(251, 255, 1);
+            stroke-width: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <svg width="960" height="1060"></svg>
+    <script>
+        // const margin = {
+        //         top: 40,
+        //         right: 10,
+        //         bottom: 10,
+        //         left: 10
+        //     },
+        //     width = 960 - margin.left - margin.right,
+        //     height = 500 - margin.top - margin.bottom,
+        //     color = d3.scaleOrdinal().range(d3.schemeCategory20c);
+
+        // const treemap = d3.treemap().size([width, height]);
+
+        // const div = d3.select("body").append("div")
+        //     .style("position", "relative")
+        //     .style("width", (width + margin.left + margin.right) + "px")
+        //     .style("height", (height + margin.top + margin.bottom) + "px")
+        //     .style("left", margin.left + "px")
+        //     .style("top", margin.top + "px");
+
+        // d3.json("getTestName", function (error, data) {
+        //     if (error) throw error;
+
+
+        //     var tempObj = {
+        //         testName: "QA Category",
+        //         child: data
+        //     }
+        //     tempObj = d3.hierarchy(tempObj, function children(d) {
+        //         return d.child;
+        //     });
+        //     tempObj.sum(function (d) {
+        //         if (d.child != null) {
+        //             return 0;
+        //         }
+        //         return 1;
+        //     });
+
+        //     const tree = treemap(tempObj);
+
+        //     const node = div.datum(tempObj).selectAll(".node")
+        //         .data(tree.leaves())
+        //         .enter().append("div")
+        //         .attr("class", "node")
+        //         .style("left", (d) => d.x0 + "px")
+        //         .style("top", (d) => d.y0 + "px")
+        //         .style("width", (d) => Math.max(0, d.x1 - d.x0 - 1) + "px")
+        //         .style("height", (d) => Math.max(0, d.y1 - d.y0 - 1) + "px")
+        //         .style("background", (d) => color(d.parent.data.testName))
+        //         .text((d) => d.data.testName);
+
+        //     d3.selectAll("input").on("change", function change() {
+        //         const value = this.value === "count" ?
+        //             (d) => {
+        //                 return d.size ? 1 : 0;
+        //             } :
+        //             (d) => {
+        //                 return d.size;
+        //             };
+
+        //         const newRoot = d3.hierarchy(tempObj, (d) => d.children)
+        //             .sum(value);
+
+        //         node.data(treemap(newRoot).leaves())
+        //             .transition()
+        //             .duration(1500)
+        //             .style("left", (d) => d.x0 + "px")
+        //             .style("top", (d) => d.y0 + "px")
+        //             .style("width", (d) => Math.max(0, d.x1 - d.x0 - 1) + "px")
+        //             .style("height", (d) => Math.max(0, d.y1 - d.y0 - 1) + "px")
+        //     });
+        // });
+
+        var svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        var color = d3.scaleOrdinal().range(d3.schemeCategory20c);
+
+        var treemap = d3.treemap()
+            .size([width, height])
+            .paddingOuter(4)
+            .paddingTop(26)
+            .paddingInner(2)
+            .round(true);
+
+        d3.json("getTestName", function (error, data) {
+            if (error) throw error;
+
+            var tempObj = {
+                testName: "QA Category",
+                child: data
+            }
+            tempObj = d3.hierarchy(tempObj, function children(d) {
+                return d.child;
+            });
+            tempObj.sum(function (d) {
+                if (d.child != null) {
+                    return 0;
+                }
+                return 1;
+            });
+
+            treemap(tempObj);
+
+            var cell = svg
+                .selectAll(".node")
+                .data(tempObj.descendants())
+                .enter().append("g")
+                .attr("transform", function (d) {
+                    return "translate(" + d.x0 + "," + d.y0 + ")";
+                })
+                .attr("class", "node")
+                .each(function (d) {
+                    d.node = this;
+                })
+                .on("mouseover", hovered(true))
+                .on("mouseout", hovered(false));
+
+            cell.append("rect")
+                .attr("id", function (d) {
+                    return "rect-" + d.data.testName;
+                })
+                .attr("width", function (d) {
+                    return d.x1 - d.x0;
+                })
+                .attr("height", function (d) {
+                    return d.y1 - d.y0;
+                })
+                .style("fill", function (d) {
+                    return color(d.depth);
+                });
+
+            cell.append("clipPath")
+                .attr("id", function (d) {
+                    return "clip-" + d.data.testName;
+                })
+                .append("use")
+                .attr("xlink:href", function (d) {
+                    return "#rect-" + d.data.testName + "";
+                });
+
+            var label = cell.append("text")
+                .attr("clip-path", function (d) {
+                    return "url(#clip-" + d.data.testName + ")";
+                });
+
+            label.filter(function (d) {
+                    return d.children;
+                })
+                .selectAll("tspan")
+                .data(function (d) {
+                    return d.data.testName;
+                })
+                .enter().append("tspan")
+                .attr("x", function (d, i) {
+                    return i ? null : 5;
+                })
+                .attr("y", 20)
+                .text(function (d) {
+                    return d;
+                });
+
+            label.filter(function (d) {
+                    return !d.children;
+                })
+                .selectAll("tspan")
+                .data(function (d) {
+                    return d.data.testName.split(/ /g);
+                })
+                .enter().append("tspan")
+                .attr("x", 5)
+                .attr("y", function (d, i) {
+                    return 20 + i * 20;
+                })
+                .text(function (d) {
+                    return d;
+                });
+
+            cell.append("title")
+                .text(function (d) {
+                    return d.data.testName;
+                });
+        });
+
+        function hovered(hover) {
+            return function (d) {
+                d3.selectAll(d.ancestors().map(function (d) {
+                        return d.node;
+                    }))
+                    .classed("node--hover", hover)
+                    .select("rect")
+                    .attr("width", function (d) {
+                        return d.x1 - d.x0 - hover;
+                    })
+                    .attr("height", function (d) {
+                        return d.y1 - d.y0 - hover;
+                    });
+            };
+        }
+    </script>
+</body>
+
+</html>
