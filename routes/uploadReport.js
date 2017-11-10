@@ -97,7 +97,7 @@ function findTestName(dbCol, inputID, cb) {
 }
 
 function getNowTime(str) {
-    var tempDate = convertToUTC(str);
+    var tempDate = moment(str, ["YYYY-MM-DD", "MM/DD/YYYY"]).toDate();
     var dd = tempDate.getDate();
     var mm = tempDate.getMonth() + 1;
     var yyyy = tempDate.getFullYear();
