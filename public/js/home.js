@@ -41,24 +41,12 @@ function changeEnvir(element) {
 function changeView(element) {
     if (element.id == "cardView") {
         document.querySelector("#categoryView").setAttribute("class", "");
-        document.querySelector("#sunburstView").style.display = "none";
-        document.querySelector("#circlePackView").style.display = "none";
-        document.querySelector("#treeView").style.display = "none";
-        document.querySelector("#treemapView").style.display = "none";
-        document.querySelector("#ordinaryView").style.display = "none";
+        document.querySelector("#buttonGroup2").style.display = "none";
     } else if (element.id == "categoryView") {
         document.querySelector("#cardView").setAttribute("class", "");
-        document.querySelector("#sunburstView").style.display = "block";
-        document.querySelector("#circlePackView").style.display = "block";
-        document.querySelector("#treeView").style.display = "block";
-        document.querySelector("#treemapView").style.display = "block";
-        document.querySelector("#ordinaryView").style.display = "block";
+        document.querySelector("#buttonGroup2").style.display = "inline-block";
     } else {
-        document.querySelector("#sunburstView").setAttribute("class", "");
-        document.querySelector("#circlePackView").setAttribute("class", "");
-        document.querySelector("#treeView").setAttribute("class", "");
-        document.querySelector("#treemapView").setAttribute("class", "");
-        document.querySelector("#ordinaryView").setAttribute("class", "");
+        document.querySelector("#buttonGroup2 .buttonSelected").setAttribute("class", "");
     }
     element.setAttribute("class", "buttonSelected");
     checkTestArea();
@@ -126,15 +114,17 @@ function checkTestArea() {
                         }
                     }
                     document.querySelector("#contentPane").innerHTML = "";
-                    if (document.querySelector("#treeView").className == "buttonSelected") {
-                        createCollapseTree(tempObj);
-                    } else if (document.querySelector("#treemapView").className == "buttonSelected") {
-                        createTreemap(tempObj);
-                    } else if (document.querySelector("#circlePackView").className == "buttonSelected") {
-                        createCirclePack(tempObj);
-                    } else if (document.querySelector("#sunburstView").className == "buttonSelected") {
+                    var selButton = document.querySelector("#buttonGroup2 .buttonSelected")
+                    if (selButton.id == "sunburstView") {
                         createSunburst(tempObj);
-                    } else if (document.querySelector("#ordinaryView").className == "buttonSelected") {
+                    } else if (selButton.id == "circlePackView") {
+                        createCirclePack(tempObj);
+                    } else if (selButton.id == "treemapView") {
+                        createTreemap(tempObj);
+                    } else if (selButton.id == "treeView") {
+                        // createTree(tempObj);
+                        createCollapseTree(tempObj);
+                    } else if (selButton.id == "ordinaryView") {
                         createOrdinary(tempObj);
                     }
                 });
@@ -151,18 +141,22 @@ function checkTestArea() {
                             fullList.splice(fullList.indexOf(resultList[0].testName), 1);
                             var passCount = resultList[0].testResult == "Pass" ? 1 : 0;
                             var resultGroup = [resultList[0]];
-                            for (var i = 1; i < resultList.length; i++) {
-                                if (resultList[i].testName != resultList[i - 1].testName) {
-                                    fullList.splice(fullList.indexOf(resultList[i - 1].testName), 1);
-                                    createCard(passCount, resultGroup, resultList[i - 1].testName);
-                                    passCount = 0;
-                                    resultGroup = [resultList[i]];
-                                } else {
-                                    resultGroup.push(resultList[i]);
-                                }
-                                passCount = resultList[i].testResult == "Pass" ? passCount + 1 : passCount;
-                                if (i == resultList.length - 1) {
-                                    createCard(passCount, resultGroup, resultList[i].testName);
+                            if (resultList.length === 1) {
+                                createCard(passCount, resultGroup, resultList[0].testName);
+                            } else {
+                                for (var i = 1; i < resultList.length; i++) {
+                                    if (resultList[i].testName != resultList[i - 1].testName) {
+                                        fullList.splice(fullList.indexOf(resultList[i - 1].testName), 1);
+                                        createCard(passCount, resultGroup, resultList[i - 1].testName);
+                                        passCount = 0;
+                                        resultGroup = [resultList[i]];
+                                    } else {
+                                        resultGroup.push(resultList[i]);
+                                    }
+                                    passCount = resultList[i].testResult == "Pass" ? passCount + 1 : passCount;
+                                    if (i == resultList.length - 1) {
+                                        createCard(passCount, resultGroup, resultList[i].testName);
+                                    }
                                 }
                             }
                         }
@@ -623,7 +617,7 @@ function createCollapseTree(jsonObj) {
     }
     // Creates a curved (diagonal) path from parent to the child nodes
     function diagonal(s, d) {
-        path = "M " + s.y + " " +  s.x + " C " + (s.y + d.y) / 2  + " "+ s.x + " , " + (s.y + d.y) / 2  + " " + d.x + " , " + d.y + " " + d.x;
+        path = "M " + s.y + " " + s.x + " C " + (s.y + d.y) / 2 + " " + s.x + " , " + (s.y + d.y) / 2 + " " + d.x + " , " + d.y + " " + d.x;
         return path
     }
     // Toggle children on click.
@@ -694,8 +688,7 @@ function createCirclePack(jsonObj) {
             if (focus !== d) {
                 zoom(d);
                 d3.event.stopPropagation();
-            }
-            else if (!d.children && d.data.hasOwnProperty("cateName")) {
+            } else if (!d.children && d.data.hasOwnProperty("cateName")) {
                 window.open(".\\report\\" + d.data.testName);
             };
         });
@@ -821,7 +814,7 @@ function createSunburst(jsonObj) {
         .attr("font-size", "1.3rem")
         .attr("id", "cateDescription")
         .text("QA Category")
-        .attr("transform", "translate(" + svgWidth / 2+ ", 20)")
+        .attr("transform", "translate(" + svgWidth / 2 + ", 20)")
         .attr("text-anchor", "middle");
 
     function click(d) {
@@ -853,7 +846,7 @@ function createSunburst(jsonObj) {
         var width = (svgWidth - 50) * 2 / 3;
         var text = d3.select("#cateDescription").text(tempStr);
         wrap(text, width);
-        
+
 
         function getParent(obj) {
             if (obj.parent == null) {
@@ -866,7 +859,7 @@ function createSunburst(jsonObj) {
             var words = text.text().split(/>/g).reverse(),
                 word,
                 line = [],
-                lineHeight = 22, 
+                lineHeight = 22,
                 y = text.attr("y"),
                 dy = parseFloat(text.attr("font-size"));
             if (isChrome) {
@@ -890,7 +883,7 @@ function createSunburst(jsonObj) {
 
                 }
             }
-            text.attr("transform", "translate(" + svgWidth / 2  + ", 20)");
+            text.attr("transform", "translate(" + svgWidth / 2 + ", 20)");
         }
     }
     d3.select(self.frameElement).style("height", svgHeight + "px");
@@ -917,20 +910,23 @@ function createOrdinary(jsonObj) {
             arr[arr.length - 1]++;
         }
     }
+
     function makeDiv(obj, parentNode) {
         var div = document.createElement("div");
         parentNode.appendChild(div);
-        div.className = ("ordinaryCard"); 
+        div.className = ("ordinaryCard");
         if (div.parentNode != document.querySelector("#contentPane") && div.parentNode != document.querySelector("#contentPane > div")) {
             div.className += " toggled";
         }
         div.style.textAlign = "left";
         var testName = document.createElement("div");
+        div.appendChild(testName);
         testName.className = "fieldTitle";
+        testName.style.cursor = "pointer";
         var radioButton = document.createElement("div");
         var nameStr = document.createElement("div");
         if (obj.hasOwnProperty("testResult")) {
-            if (obj.testResult == "Pass") {
+            if (obj.testResult === "Pass") {
                 div.style.backgroundColor = "#deffde";
                 radioButton.textContent = "\u2714";
             } else {
@@ -957,7 +953,6 @@ function createOrdinary(jsonObj) {
                 arrow.className = "expanded";
             }
             testName.appendChild(arrow);
-            testName.style.cursor = "pointer";
             testName.onclick = function (e) {
                 var parent = e.target.parentNode;
                 if (e.target.childNodes[2].className == "") {
@@ -967,18 +962,28 @@ function createOrdinary(jsonObj) {
                     e.target.childNodes[2].className = "expanded";
                 } else {
                     for (var i = 1; i < parent.childNodes.length; i++) {
-                        parent.childNodes[i].className += " toggled"; 
+                        parent.childNodes[i].className += " toggled";
                     }
                     e.target.childNodes[2].className = "";
                 }
             }
         } else if (obj.hasOwnProperty("cateName")) {
-            testName.style.cursor = "pointer";
             testName.onclick = function () {
                 window.open(".\\report\\" + obj.testName);
             }
+            testName.style.height = "30px";
+            var descrip = document.createElement("div");
+            var tempCollect = obj.testName.substring(0, obj.testName.lastIndexOf(".")).match(/[a-zA-Z ]+|[0-9_]+/g);
+            if (tempCollect.length > 1) {
+                tempCollect = tempCollect[1];
+                var tempCol = tempCollect.split(/_/g);
+                tempCollect = "Test Date: " + tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2] + "\n" + "Upload Time: " + tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
+            }                
+            descrip.textContent = tempCollect;
+            descrip.style.whiteSpace = "pre";
+            descrip.style.margin = "auto auto auto 47px";
+            div.appendChild(descrip);
         }
-        div.appendChild(testName);
         return div;
     }
 }
@@ -1008,6 +1013,9 @@ function createTreemap(jsonObj) {
     });
     jsonObj.sum(function (d) {
         if (d.child != null) {
+            if (d.hasOwnProperty("id")) {
+                return 1;
+            }
             return 0;
         }
         return 1;
@@ -1046,9 +1054,9 @@ function createTreemap(jsonObj) {
         .style("fill", function (d) {
             if (d.data.hasOwnProperty("cateName")) {
                 if (d.data.testResult == "Pass") {
-                    return "#00a300";
+                    return "#79de79";
                 }
-                return "#ff3030";
+                return "#ff7777";
             } else {
                 return color(d.depth);
             }
@@ -1075,7 +1083,7 @@ function createTreemap(jsonObj) {
             if (d.data.hasOwnProperty("cateName")) {
                 return "url(#clip-" + encodeURI(d.data.testName.substring(0, d.data.testName.lastIndexOf("."))) + ")";
             }
-            return "url(#clip-" +encodeURI(d.data.testName) + ")";
+            return "url(#clip-" + encodeURI(d.data.testName) + ")";
         });
 
     label.filter(function (d) {
@@ -1100,7 +1108,14 @@ function createTreemap(jsonObj) {
         .selectAll("tspan")
         .data(function (d) {
             if (d.data.hasOwnProperty("cateName")) {
-                return d.data.testName.substring(0, d.data.testName.lastIndexOf(".")).match(/[a-zA-Z]+|[0-9_]+/g);
+                var collect = d.data.testName.substring(0, d.data.testName.lastIndexOf(".")).match(/[a-zA-Z ]+|[0-9_]+/g);
+                if (collect.length > 1) {
+                    var tempCol = collect[1].split(/_/g);
+                    collect[1] = "";
+                    collect[2] = tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2];
+                    collect[3] = tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
+                }                
+                return collect;
             }
             return d.data.testName.split(/ /g);
         })

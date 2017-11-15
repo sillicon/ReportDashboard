@@ -82,13 +82,17 @@ body {
         float: none !important;
         text-align: left;
     }
-    #contentNavi2 {
-        padding: initial !important;
-    }
     #contentNavi a,
     #contentNavi2 a {
         position: initial;
         display: block;
+    }
+    #buttonGroup1,
+    #buttonGroup2 {
+        margin: 3px !important;
+        float: none !important;
+        text-align: center !important;
+        display: inline-block;
     }
 }
 
@@ -187,16 +191,27 @@ body {
     text-align: center;
 }
 
-#buttonGroup {
+#buttonContainer {
     overflow: auto;
     width: 80%;
     max-width: 1200px;
-    margin: 20px auto 10px auto;
+    margin: 5px auto 5px auto;
     text-align: center;
     font-size: 1rem;
 }
 
-#buttonGroup div {
+#buttonGroup1 {
+    float: left;
+    margin: 5px 40px 5px auto;
+}
+
+#buttonGroup2 {
+    float: right;
+    margin: 5px auto 5px auto;
+}
+
+#buttonGroup1 div,
+#buttonGroup2 div {
     background-color: rgb(255, 255, 255);
     border: 1px solid #11a1f5;
     color: rgb(0, 0, 0);
@@ -204,40 +219,42 @@ body {
     cursor: pointer;
 }
 
-#buttonGroup div:nth-child(1) {
+#buttonGroup1 div:nth-child(1) {
     float: left;
     border-radius: 5px 0 0 5px;
 }
 
-#buttonGroup div:nth-child(2) {
+#buttonGroup1 div:nth-child(2) {
     float: left;
     border-left: none;
     border-radius: 0 5px 5px 0;
 }
 
-#buttonGroup div:nth-child(3) {
+#buttonGroup2 div:nth-child(1) {
     float: right;
     border-left: 0;
     border-radius: 0 5px 5px 0;
 }
 
-#buttonGroup div:nth-child(4),
-#buttonGroup div:nth-child(5),
-#buttonGroup div:nth-child(6) {
+#buttonGroup2 div:nth-child(2),
+#buttonGroup2 div:nth-child(3),
+#buttonGroup2 div:nth-child(4) {
     float: right;
     border-left: 0;
 }
 
-#buttonGroup div:nth-child(7) {
+#buttonGroup2 div:nth-child(5) {
     float: right;
     border-radius: 5px 0 0 5px;
 }
 
-#buttonGroup div:hover {
+#buttonGroup1 div:hover,
+#buttonGroup2 div:hover {
     background-color: #ace1ff;
 }
 
-#buttonGroup .buttonSelected {
+#buttonGroup1 .buttonSelected,
+#buttonGroup2 .buttonSelected {
     box-shadow: inset 1px 2px 2px rgba(0, 0, 0, 0.2);
 }
 
