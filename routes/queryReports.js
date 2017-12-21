@@ -4,9 +4,8 @@ var moment = require('moment');
 var router = express.Router();
 
 router.get("/queryReports", function (req, res) { // new query with MongoDB
-    var paramsList = ["reportEnvir1", "reportEnvir2", "reportEnvir3"];
-    if (queryValidator(paramsList, req.query) === false) {
-        res.sendFile(path.join(path.dirname(__dirname), "public", "ReadReport.html"));
+    if (!queryValidator(req.query)) {
+        res.status(400).send("Missing query parameter!");
     } else {
         var db = req.app.get('dbConnection');
         // Get the documents collection
@@ -14,25 +13,24 @@ router.get("/queryReports", function (req, res) { // new query with MongoDB
         var queryObj = {
             $or: []
         };
-        if (req.query.reportEnvir1 == "true") {
+        if (req.query.reportEnvir1 === "true") {
             queryObj.$or.push({
                 envirTested: "Envir1"
             });
         }
-        if (req.query.reportEnvir2 == "true") {
+        if (req.query.reportEnvir2 === "true") {
             queryObj.$or.push({
                 envirTested: "Envir2"
             });
         }
-        if (req.query.reportEnvir3 == "true") {
+        if (req.query.reportEnvir3 === "true") {
             queryObj.$or.push({
                 envirTested: "Envir3"
             });
         }
-        if (req.query.reportCategory != null) {
-            queryObj.id = {
-                $eq: req.query.reportCategory
-            };
+        if (req.query.reportCategory !== null) {
+            queryObj.testID = parseInt(req.query.reportCategory);
+            
         }
         if (req.query.requestType === "Date") {
             if (req.query.reportDate !== "") {
@@ -174,14 +172,14 @@ router.get("/getIDRef", function (req, res) {
             res.send(result);
         }
     });
-});
+})
 
 function getIDRef(dbCol, cb) {
     dbCol.find().toArray(function (err, docs) {
-        var returnObj = {};
         if (err) {
             cb(err, returnObj);
         } else {
+            var returnObj = {};
             docs.forEach(function(element) {
                 var tempObj = [element];
                 var arr = [0];
@@ -208,13 +206,14 @@ function getIDRef(dbCol, cb) {
     });
 }
 
-function queryValidator(inputParams, testObj) {
-    for (var i = 0; i < inputParams.length; i++) {
-        if (testObj.hasOwnProperty(inputParams[i]) === false) {
-            return false;
+function queryValidator(testObj) {
+    var paramsList = ["reportEnvir1", "reportEnvir2", "reportEnvir3"];
+    for (var i = 0; i < paramsList.length; i++) {
+        if (testObj.hasOwnProperty(paramsList[i]) && testObj[paramsList[i]] === "true") {
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 function convertToUTC(dateStr) {

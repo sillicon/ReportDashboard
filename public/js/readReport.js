@@ -9,7 +9,7 @@ function onFormLoad() {
     dateRangeRadio = document.getElementById("dateRange");
     dateRange1 = document.getElementById("dateRange1");
     dateRange2 = document.getElementById("dateRange2");
-    withinDaysRaio = document.getElementById("onDays");
+    withinDaysRadio = document.getElementById("onDays");
     withinDays = document.getElementById("withinDays");
     fileInput = document.getElementById("sourceUpload");
     dateValue = document.getElementById("testDate");
@@ -28,7 +28,7 @@ function onFormLoad() {
     // Firefox 1.0+
     isFirefox = typeof InstallTrigger !== 'undefined';
     // Safari 3.0+ "[object HTMLElementConstructor]" 
-    isSafari = /constructor/i.test(window.HTMLElement) || (function (p) {
+    isSafari = /constructor/i.test(window.HTMLElement) || (function(p) {
         return p.toString() === "[object SafariRemoteNotification]";
     })(!window['safari'] || safari.pushNotification);
     // Internet Explorer 6-11
@@ -40,13 +40,13 @@ function onFormLoad() {
     // Blink engine detection
     isBlink = (isChrome || isOpera) && !!window.CSS;
 
-    var tempDays = ["Last 3 days", "Last 5 days", "Last 7 days", "Last 2 weeks", "All Records"];
-    var tempArray = [3, 5, 7, 14, -1];
+    var tempDays = ["Last 3 days", "Last week", "Last 2 weeks", "Last 3 weeks", "Last 4 weeks", "All Records"];
+    var tempArray = [3, 7, 14, 21, 28, -1];
     for (var i = 0; i < tempDays.length; i++) {
         withinDays.options[i] = new Option(tempDays[i], tempArray[i]);
     }
     var xmlHTTP = new XMLHttpRequest();
-    xmlHTTP.onreadystatechange = function () {
+    xmlHTTP.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             var testList = JSON.parse(this.responseText);
             for (var i = 0; i < testList.length; i++) {
@@ -100,27 +100,25 @@ function onFormLoad() {
         var queryObj = getParamsToArray(window.location.href);
         if (queryObj.requestType == "Date") {
             onDateRadio.checked = true;
-            onDayChange();
             testDate.value = queryObj.reportDate;
         } else if (queryObj.requestType == "Range") {
             if (queryObj.startDate != "null") {
                 dateRangeRadio.checked = true;
-                onDayChange();
-                dateRange1.valueAsDate = new Date(queryObj.startDate);
-                dateRange2.valueAsDate = new Date(queryObj.endDate);
+                dateRange1.value = queryObj.startDate;
+                dateRange2.value = queryObj.endDate;
+                limitDateRange();
             } else {
-                withinDaysRaio.checked = true;
-                onDayChange();
+                withinDaysRadio.checked = true;
                 withinDays.selectedIndex = withinDays.childElementCount - 1;
             }
         }
-        if (queryObj.reportEnvir1 == "true") {
+        if (queryObj.reportEnvir1) {
             envir1Chb.checked = true;
         }
-        if (queryObj.reportEnvir2 == "true") {
+        if (queryObj.reportEnvir2) {
             envir2Chb.checked = true;
         }
-        if (queryObj.reportEnvir3 == "true") {
+        if (queryObj.reportEnvir3) {
             envir3Chb.checked = true;
         }
         handleXHR(queryObj);
@@ -133,7 +131,7 @@ function onFormLoad() {
         $('#dateRange1').datepicker();
         $('#dateRange2').datepicker();
     }
-    document.querySelector("body").addEventListener("click", function (e) {
+    document.querySelector("body").addEventListener("click", function(e) {
         if (e.target.tagName != "rect") {
             document.querySelector("#testListTip").style.display = "none";
         }
@@ -178,24 +176,29 @@ function handleXHR(requestParams) {
     var backButton = document.createElement("button");
     backButton.textContent = "Back";
     backButton.id = "backToForm";
-    backButton.addEventListener("click", function () {
+    backButton.addEventListener("click", function() {
         if (formDiv.style.display === "none") {
             var bButton = document.getElementById("backToForm");
             var charts = document.getElementById("charts");
             bButton.outerHTML = "";
             waitLoad(formDiv);
             waitHide(resultDiv);
-            window.setTimeout(function () {
+            window.setTimeout(function() {
                 charts.innerHTML = "";
                 document.getElementById("tooltip").style.opacity = 0;
             }, 400);
-            if (requestParams.reportCategory != undefined) {
-                for (var i = 0; i < cateSel.childElementCount; i++) {
+            if (requestParams.hasOwnProperty("reportDevext") && requestParams.reportDevext) {
+                envir1Chb.checked = true;
+            } else {
+                envir1Chb.checked = false;
+            }
+            if (requestParams.reportCategory !== undefined) {
+                for (var i = 0; i < cateSel.options.length; i++) {
                     if (requestParams.reportCategory == cateSel.options[i].value) {
                         cateSel.selectedIndex = i;
                         cateCheck.checked = true;
                         onCateChange();
-                        i = cateSel.childElementCount;
+                        break;
                     } else if (i == cateSel.childElementCount - 1) {
                         cateCheck.checked = false;
                         onCateChange();
@@ -211,8 +214,8 @@ function handleXHR(requestParams) {
     waitLoad(resultDiv);
     resultDiv.innerHTML = "<div id =\"loader\" class=\"loader\"></div>";
     var xmlHTTP = new XMLHttpRequest();
-    xmlHTTP.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
+    xmlHTTP.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status === 200) {
             var responseObj = JSON.parse(this.responseText);
             var resultEnvir = 0;
             var envirName = [{
@@ -257,6 +260,9 @@ function handleXHR(requestParams) {
                 resultDiv.innerHTML = tableHTML;
             }
             resultDiv.style.display = 'block';
+        } else if (this.status === 400) {
+            resultDiv.style.textAlign = "Center";
+            resultDiv.innerHTML = "<font size = '10px'>" + this.responseText + "</font>";
         }
     };
     xmlHTTP.open("GET", "./queryReports" + formatParams(requestParams));
@@ -266,8 +272,8 @@ function handleXHR(requestParams) {
 function validateButton() {
     if ((envir1Chb.checked || envir2Chb.checked || envir3Chb.checked) &&
         ((onDateRadio.checked && testDate.value !== "") ||
-            (dateRangeRadio.checked && validateDate(dateRange1.value) && validateDate(dateRange2.value)) ||
-            withinDaysRaio.checked)) {
+            (dateRangeRadio.checked && validateDate(dateRange1.value) && validateDate(dateRange2.value) && (new Date(dateRange1.value) <= new Date(dateRange2.value))) ||
+            withinDaysRadio.checked)) {
         subButton.className = subButton.className.replace(/(?:^|\s)buttonDisabled(?!\S)/g, '');
     } else if (subButton.className.indexOf("buttonDisabled") < 0) {
         subButton.className += " buttonDisabled";
@@ -282,7 +288,7 @@ function validateDate(inputString) {
 function formatParams(params) {
     return "?" + Object
         .keys(params)
-        .map(function (key) {
+        .map(function(key) {
             return key + "=" + params[key]
         })
         .join("&")
@@ -293,7 +299,14 @@ function getParamsToArray(string) {
     var tempString = string.split("?")[1].split("&");
     for (var i = 0; i < tempString.length; i++) {
         var name = tempString[i].split("=")[0];
-        returnObj[name] = decodeURI(tempString[i].split("=")[1]);
+        var temp = decodeURI(tempString[i].split("=")[1]);
+        if (temp === "true") {
+            returnObj[name] = true;
+        } else if (temp === "false") {
+            returnObj[name] = false;
+        } else {
+            returnObj[name] = temp;
+        }
     }
     return returnObj;
 }
@@ -371,13 +384,13 @@ function createCharts(inputArray, envir) {
         }
     }
 
-    var minDate = new Date(Date.parse(d3.min(fullArray, function (d) {
-            return d3.extent(d, function (p) {
+    var minDate = new Date(Date.parse(d3.min(fullArray, function(d) {
+            return d3.extent(d, function(p) {
                 return toLocaleDate(new Date(p.date))
             })[0]
         }))),
-        maxDate = new Date(Date.parse(d3.max(fullArray, function (d) {
-            return d3.extent(d, function (p) {
+        maxDate = new Date(Date.parse(d3.max(fullArray, function(d) {
+            return d3.extent(d, function(p) {
                 return toLocaleDate(new Date(p.date))
             })[1]
         }))),
@@ -433,7 +446,7 @@ function createCharts(inputArray, envir) {
     bindMouseEvent(passBar, "pass");
     bindMouseEvent(failBar, "fail");
 
-    d3.selectAll("rect").filter(function (d, i, n) {
+    d3.selectAll("rect").filter(function(d, i, n) {
         if (parseFloat(n[i].getAttribute("width")) === 0) {
             return d;
         }
@@ -465,7 +478,7 @@ function createCharts(inputArray, envir) {
         .style("text-anchor", "start")
         .call(wrapText, margin.left - 12);
 
-    svg.on("click", function () {
+    svg.on("click", function() {
         if (d3.event.target.tagName != "rect") {
             var div = d3.select(".testListTip");
             var clickedRect = svg.select(".clicked");
@@ -483,7 +496,7 @@ function createCharts(inputArray, envir) {
     function createRect(svgGroup, dateArray, result) {
         svgGroup.data(dateArray)
             .enter().append("rect")
-            .attr("class", function () {
+            .attr("class", function() {
                 if (result === "pass") {
                     return "passBar";
                 } else {
@@ -493,14 +506,14 @@ function createCharts(inputArray, envir) {
     }
 
     function drawBar(svgGroup, xScale, result) {
-        svgGroup.attr("width", function (d) {
+        svgGroup.attr("width", function(d) {
                 if (result === "pass") {
                     return xScale(calculateDays(toLocaleDate(d.date), d.ratio)) - xScale(toLocaleDate(d.date));
                 } else {
                     return xScale(calculateDays(toLocaleDate(d.date), 1 - d.ratio)) - xScale(toLocaleDate(d.date));
                 }
             })
-            .attr("transform", function (d) {
+            .attr("transform", function(d) {
                 if (result === "pass") {
                     return "translate(" + (margin.left + xScale(toLocaleDate(d.date))) + ", 0)";
                 } else {
@@ -508,19 +521,19 @@ function createCharts(inputArray, envir) {
                 }
             })
             .attr("height", barHeight)
-            .attr("y", function (d) {
+            .attr("y", function(d) {
                 return y(d.testName) + (y.bandwidth() - barHeight) / 2;
             })
     }
 
     function bindMouseEvent(svgGroup, result) {
-        svgGroup.on("mouseover", function (d) {
+        svgGroup.on("mouseover", function(d) {
                 var rectBox = this;
                 var div = d3.select(".tooltip");
                 div.transition()
                     .duration(300)
                     .style("opacity", .9);
-                div.html(function () {
+                div.html(function() {
                         var testCount, tempStr1, tempStr2
                         if (result === "pass") {
                             testCount = Math.round(d.ratio * d.counts);
@@ -536,7 +549,7 @@ function createCharts(inputArray, envir) {
                         }
                         return "<span>" + testCount + tempStr2 + tempStr1 + "</span><br>";
                     })
-                    .style("left", function () {
+                    .style("left", function() {
                         var rectLeft = rectBox.getBoundingClientRect().left,
                             rectWidth = rectBox.getBoundingClientRect().width,
                             tipWidth = this.getBoundingClientRect().width,
@@ -548,7 +561,7 @@ function createCharts(inputArray, envir) {
                         }
                         return ((rectLeft + rectWidth / 2 - tipWidth / 2 + scrollWidth) + "px");
                     })
-                    .style("top", function () {
+                    .style("top", function() {
                         var rectTop = rectBox.getBoundingClientRect().top,
                             tipHeight = this.getBoundingClientRect().height,
                             scrollHeight;
@@ -560,13 +573,13 @@ function createCharts(inputArray, envir) {
                         return ((scrollHeight + rectTop - tipHeight - 10) + "px");
                     });
             })
-            .on("mouseout", function () {
+            .on("mouseout", function() {
                 var div = d3.select(".tooltip");
                 div.transition()
                     .duration(200)
                     .style("opacity", 0);
             })
-            .on("click", function (d) {
+            .on("click", function(d) {
                 var rect = d3.select(this),
                     rectBox = this;
                 var div = d3.select(".testListTip");
@@ -581,7 +594,7 @@ function createCharts(inputArray, envir) {
                     }
                     rect.attr("class", rect.attr("class") + " clicked");
                     rect.style("fill", window.getComputedStyle(this).fill);
-                    div.html(function () {
+                    div.html(function() {
                         var tempHTML = "";
                         if (result === "pass") {
                             if (d.passFiles.length > 1) {
@@ -605,7 +618,7 @@ function createCharts(inputArray, envir) {
                         return tempHTML;
                     });
                     div.style("display", "block");
-                    div.style("left", function () {
+                    div.style("left", function() {
                             var rectLeft = rectBox.getBoundingClientRect().left,
                                 rectWidth = rectBox.getBoundingClientRect().width,
                                 tipWidth = this.getBoundingClientRect().width,
@@ -640,7 +653,7 @@ function createCharts(inputArray, envir) {
                             }
                             return ((rectLeft + rectWidth + scrollWidth + 10) + "px");
                         })
-                        .style("top", function () {
+                        .style("top", function() {
                             var rectTop = rectBox.getBoundingClientRect().top,
                                 rectHeight = rectBox.getBoundingClientRect().height,
                                 tipHeight = this.getBoundingClientRect().height,
@@ -674,7 +687,7 @@ function createCharts(inputArray, envir) {
         drawBar(passBar, newX, "pass");
         drawBar(failBar, newX, "fail");
         svg.selectAll("rect")
-            .filter(function () {
+            .filter(function() {
                 var trans = this.attributes.transform.value;
                 trans = trans.slice(trans.indexOf("(") + 1, trans.indexOf(","));
                 trans = parseFloat(trans);
@@ -684,7 +697,7 @@ function createCharts(inputArray, envir) {
             })
             .style("display", "none");
         svg.selectAll("rect")
-            .filter(function () {
+            .filter(function() {
                 var trans = this.attributes.transform.value;
                 trans = trans.slice(trans.indexOf("(") + 1, trans.indexOf(","));
                 trans = parseFloat(trans);
@@ -698,7 +711,7 @@ function createCharts(inputArray, envir) {
         gridX.tickValues(createTickValues(minDate, calculateDays(maxDate, 1), Math.round(Math.max(80 * dateRange / svgWidth / d3.event.transform.k, 1))));
         gridLine.call(gridX.scale(newX));
         gridLine.selectAll("g")
-            .filter(function () {
+            .filter(function() {
                 var trans = this.attributes.transform.value;
                 trans = trans.slice(trans.indexOf("(") + 1, trans.indexOf(","));
                 trans = parseFloat(trans);
@@ -711,7 +724,7 @@ function createCharts(inputArray, envir) {
         xAxis.tickValues(createTickValues(minDate, calculateDays(maxDate, 1), Math.round(Math.max(80 * dateRange / svgWidth / d3.event.transform.k, 1))));
         xLine.call(xAxis.scale(newX));
         xLine.selectAll("g")
-            .filter(function () {
+            .filter(function() {
                 var trans = this.attributes.transform.value;
                 trans = trans.slice(trans.indexOf("(") + 1, trans.indexOf(","));
                 trans = parseFloat(trans);
@@ -746,7 +759,7 @@ function createCharts(inputArray, envir) {
     }
 
     function wrapText(text, width) {
-        text.each(function () {
+        text.each(function() {
             var text = d3.select(this),
                 textContent = text.text(),
                 tempWord = addBreakSpace(textContent).split(/\s+/),
@@ -771,7 +784,7 @@ function createCharts(inputArray, envir) {
                 if (tspan.node().getComputedTextLength() > width) {
                     line.pop();
                     spanContent = line.join(' ');
-                    breakChars.forEach(function (char) {
+                    breakChars.forEach(function(char) {
                         // Remove spaces trailing breakChars that were added above
                         spanContent = spanContent.replace(char + ' ', char);
                     });
@@ -805,7 +818,7 @@ function createCharts(inputArray, envir) {
 
         function addBreakSpace(inputString) {
             var breakChars = ['/', '&', '-'];
-            breakChars.forEach(function (char) {
+            breakChars.forEach(function(char) {
                 // Add a space after each break char for the function to use to determine line breaks
                 var reg = new RegExp(char, "g");
                 inputString = inputString.replace(reg, char + ' ');
@@ -815,7 +828,7 @@ function createCharts(inputArray, envir) {
     }
 
     function toTitleCase(str) {
-        return str.replace(/\w\S*/g, function (txt) {
+        return str.replace(/\w\S*/g, function(txt) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
         });
     }
@@ -828,7 +841,7 @@ function createCharts(inputArray, envir) {
         } else {
             scrollHeight = parseInt(inputElement.height());
         }
-        inputElement.off("mousewheel").on("mousewheel", function (event) {
+        inputElement.off("mousewheel").on("mousewheel", function(event) {
             var blockScrolling = ((this.scrollTop === scrollHeight - height) && event.deltaY < 0 || this.scrollTop === 0 && event.deltaY > 0);
             return !blockScrolling;
         });
@@ -854,7 +867,7 @@ function createTable(inputObject) {
 function waitHide(obj) {
     obj.style.opacity = '0';
     obj.style.height = '0px';
-    window.setTimeout(function () {
+    window.setTimeout(function() {
         obj.style.display = 'none';
     }, 400);
 }
@@ -863,7 +876,7 @@ function waitLoad(obj) {
     obj.style.opacity = '1';
     obj.style.height = '';
     window.setTimeout(
-        function () {
+        function() {
             obj.style.display = 'block';
         }, 400);
 }
@@ -874,7 +887,7 @@ function onDayChange() {
         withinDays.disabled = true;
         dateRange1.disabled = true;
         dateRange2.disabled = true;
-    } else if (withinDaysRaio.checked) {
+    } else if (withinDaysRadio.checked) {
         dateValue.disabled = true;
         withinDays.disabled = false;
         dateRange1.disabled = true;

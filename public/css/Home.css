@@ -3,6 +3,10 @@
     src: url('../fonts/AvenirNextLTPro-Regular.ttf') format('embedded-opentype'), url('../fonts/AvenirNextLTPro-Regular.woff') format('woff');
 }
 
+html {
+    overflow-y: scroll;
+}
+
 body {
     font-family: 'AvenirNextLTPro-Regular';
     margin: 0;
@@ -22,7 +26,7 @@ body {
     margin: auto;
 }
 
-#esriLogo {
+#sampleLogo {
     display: block;
     height: 80px;
     width: 179px;
@@ -60,7 +64,7 @@ body {
     #siteHeaderCenter {
         text-align: center;
     }
-    #esriLogo {
+    #sampleLogo {
         display: inline-block;
         float: none;
         height: 40px;
@@ -94,10 +98,12 @@ body {
         text-align: center !important;
         display: inline-block;
     }
+    .ordinaryCard {
+        padding: 5px !important;
+    }
 }
 
 #footer {
-    overflow: auto;
     margin: auto;
     padding: 0;
     text-align: center;
@@ -135,13 +141,22 @@ body {
 }
 
 #envirName {
-    display: block;
-    width: 80%;
-    max-width: 1200px;
-    margin: auto;
+    display: inline-block;
+    position: relative;
     color: white;
     font-size: 33px;
     padding: 10px 0px 10px 0px;
+}
+#chooseDay {
+    display: inline-block;
+    margin: auto;
+    position: relative;
+    background-color: transparent;
+    color: white;
+    font-size: 30px;
+    border: 0px;
+    border-image-width: 0px;
+    cursor: pointer;
 }
 
 #naviContainer {
@@ -191,7 +206,7 @@ body {
     text-align: center;
 }
 
-#buttonContainer {
+#buttonContainer, #exprotContainer {
     overflow: auto;
     width: 80%;
     max-width: 1200px;
@@ -258,13 +273,26 @@ body {
     box-shadow: inset 1px 2px 2px rgba(0, 0, 0, 0.2);
 }
 
+#exportSVG {
+    display: inline-block;
+    border: 1px solid #11a1f5;
+    border-radius: 5px;
+    color: rgb(0, 0, 0);
+    padding: 5px 10px 8px 10px;
+    cursor: pointer;
+}
+
+#exportSVG:hover {
+    background-color: #ace1ff;
+}
+
 #contentPane {
-    overflow: auto;
     width: 80%;
     max-width: 1200px;
     margin: auto;
     min-height: 400px;
     text-align: center;
+    padding: 0 0 10px 0;
 }
 
 #contentPane .areaCard {
@@ -280,7 +308,6 @@ body {
     /* Safari, Chrome and Opera > 12.1 */
     /* -moz-animation: fadein 2s; */
     /* Firefox < 16 */
-    /* -ms-animation: fadein 2s; */
     /* Internet Explorer */
     /* -o-animation: fadein 2s; */
     /* Opera < 12.1 */
@@ -316,16 +343,6 @@ body {
     }
 }
 
-@-ms-keyframes fadein {
-    /* Internet Explorer */
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
 @-o-keyframes fadein {
     /* Opera < 12.1 */
     from {
@@ -344,7 +361,7 @@ body {
     margin: 10px 0 10px 0;
     font-size: 20px;
     color: #005e95;
-    height: 50px;
+    height: 35px;
     font-weight: bold;
 }
 
@@ -386,7 +403,6 @@ body {
     border-top: 10px solid #0079c1;
     width: 100px;
     height: 100px;
-    -ms-keyframes: spin 1s linear infinite;
     -webkit-animation: spin 1s linear infinite;
     animation: spin 1s linear infinite;
 }
@@ -401,16 +417,6 @@ body {
 }
 
 @-webkit-keyframes spin {
-    0% {
-        -webkit-transform: rotate(0deg);
-    }
-    100% {
-        -webkit-transform: rotate(360deg);
-    }
-}
-
-@-ms-keyframes spin {
-    /*Internet Explorer*/
     0% {
         -webkit-transform: rotate(0deg);
     }
@@ -531,16 +537,17 @@ div.testListTip a {
 /* Ordinary View*/
 
 .ordinaryCard {
-    margin: 10px 20px 10px 20px;
     padding: 10px 20px 10px 20px;
-    box-shadow: 0 0 5px #005e95;
-    border: 3px;
-    min-width: 340px;
+    box-shadow: 2px 3px 5px 3px #c1c1c1;
+    overflow: hidden;
     -webkit-animation: fadein 0.5s;
     -moz-animation: fadein 0.5s;
-    -ms-animation: fadein 0.5s;
     -o-animation: fadein 0.5s;
     animation: fadein 0.5s;
+}
+
+.ordinaryCard:hover {
+    box-shadow: 2px 3px 9px 3px #a0a0a0;
 }
 
 .ordinaryCard.toggled {
@@ -557,6 +564,49 @@ div.testListTip a {
     transform: rotate(-90deg);
 }
 
+.ordinaryCard .fieldTitle.login a{
+    font-size: 16px;
+}
+
+.ordinaryCard .fieldTitle.issueTitle {
+    margin: 10px 0 0 0;
+    display: inline-block;
+}
+
+.ordinaryCard .fieldTitle a.issueName {
+    color: rgb(36, 41, 46);
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.ordinaryCard .fieldTitle a.issueName:hover {
+    color: rgb(3, 102, 214);
+}
+
+.ordinaryCard div.label {
+    display: inline-block;
+    padding: 3px 4px;
+    margin: 0 5px 10px 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    border-radius: 2px;
+    box-shadow: inset 0 -1px 0 rgba(27,31,35,0.12);
+    pointer-events: none;
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.ordinaryCard div.info {
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #586069;
+    font-size: 12px;
+    line-height: 1.25;
+    word-wrap: break-word;
+    display: inline-block;
+    margin: 0 0 10px 0;
+}
 
 /* Treemap View*/
 

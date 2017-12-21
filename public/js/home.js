@@ -1,4 +1,15 @@
 function pageLoad() {
+    var tempStr = getTodayDate();
+    if ($('#chooseDay')[0].type != 'date') {
+        $('#chooseDay').datepicker();
+        $("#chooseDay").datepicker("option", "maxDate", new Date());
+    } else {
+        document.querySelector("#chooseDay").max = tempStr;
+    }
+    document.querySelector("#chooseDay").value = tempStr;
+    //preload image
+    var preImg = ["../images/tick.svg", "../images/cross.svg", "../images/question.svg", "../images/leftarrow.svg", "../images/info.svg"];
+    preloadImages(preImg);
     var hash = window.location.hash.substr(1);
     if (hash == "envir2") {
         changeEnvir(document.querySelector("#envir2"));
@@ -13,7 +24,7 @@ function pageLoad() {
     // Firefox 1.0+
     isFirefox = typeof InstallTrigger !== 'undefined';
     // Safari 3.0+ "[object HTMLElementConstructor]" 
-    isSafari = /constructor/i.test(window.HTMLElement) || (function (p) {
+    isSafari = /constructor/i.test(window.HTMLElement) || (function(p) {
         return p.toString() === "[object SafariRemoteNotification]";
     })(!window['safari'] || safari.pushNotification);
     // Internet Explorer 6-11
@@ -24,7 +35,7 @@ function pageLoad() {
     isChrome = !!window.chrome && !!window.chrome.webstore;
     // Blink engine detection
     isBlink = (isChrome || isOpera) && !!window.CSS;
-    document.querySelector("body").addEventListener("click", function (e) {
+    document.querySelector("body").addEventListener("click", function(e) {
         if (e.target.tagName != "path") {
             document.querySelector("#reportList").style.display = "none";
         }
@@ -53,132 +64,65 @@ function changeView(element) {
 }
 
 function checkTestArea() {
-    var dayNow = new Date();
-    var tempStr = dayNow.getFullYear() + "-" + (dayNow.getMonth() + 1) + "-" + dayNow.getDate();
     var requestParams = {
         envir: document.querySelector(".naviActive").textContent,
-        testDate: tempStr
+        testDate: document.querySelector("#chooseDay").value
     }
-    var envir = document.querySelector(".naviActive").textContent;
     var xmlHTTP = new XMLHttpRequest();
-    xmlHTTP.onreadystatechange = function () {
+    xmlHTTP.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             var resultList = JSON.parse(this.responseText);
-            if (document.querySelector("#categoryView").className == "buttonSelected") {
-                d3.json("getTestName", function (error, root) {
-                    if (error) throw error;
-                    var tempObj = {
-                        testName: "QA Category",
-                        child: root
-                    }
-                    //DFS - Greedy
-                    for (var i = 0; i < resultList.length; i++) {
-                        var depthObj = [tempObj];
-                        var arr = [0];
-                        var found = false;
-                        while (!found && depthObj.length > 0) {
-                            if (arr[arr.length - 1] <= depthObj[depthObj.length - 1].child.length - 1) {
-                                if (depthObj[depthObj.length - 1].child[arr[arr.length - 1]].hasOwnProperty("child") && !depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child[0].hasOwnProperty("cateName")) {
-                                    depthObj.push(depthObj[depthObj.length - 1].child[arr[arr.length - 1]]);
-                                    arr.push(0);
-                                } else if (depthObj[depthObj.length - 1].child[arr[arr.length - 1]].id == resultList[i].testID) {
-                                    if (!depthObj[depthObj.length - 1].child[arr[arr.length - 1]].hasOwnProperty("child")) {
-                                        depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child = [];
-                                    }
-                                    depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child.push({
-                                        testName: resultList[i].fileName,
-                                        testResult: resultList[i].testResult,
-                                        cateName: resultList[i].testName
-                                    });
-                                    if (i == resultList.length - 1 || resultList[i].testID != resultList[i + 1].testID) {
-                                        depthObj[depthObj.length - 1].child[arr[arr.length - 1]].testResult = resultList[i].testResult;
-                                    }
-                                    if (i < resultList.length - 1) {
-                                        found = true;
-                                    } else {
-                                        arr[arr.length - 1]++;
-                                    }
-                                } else {
-                                    arr[arr.length - 1]++;
-                                }
-                            } else {
-                                for (var j = 0; j < depthObj[depthObj.length - 1].child.length; j++) {
-                                    if (depthObj[depthObj.length - 1].child[j].hasOwnProperty("testResult") && (!depthObj[depthObj.length - 1].hasOwnProperty("testResult") || depthObj[depthObj.length - 1].child[j].testResult == "Fail")) {
-                                        depthObj[depthObj.length - 1].testResult = depthObj[depthObj.length - 1].child[j].testResult;
-                                    }
-                                }
-                                arr.pop();
-                                depthObj.pop();
-                                arr[arr.length - 1]++;
-                            }
-                        }
-                    }
-                    document.querySelector("#contentPane").innerHTML = "";
-                    var selButton = document.querySelector("#buttonGroup2 .buttonSelected")
-                    if (selButton.id == "sunburstView") {
-                        createSunburst(tempObj);
-                    } else if (selButton.id == "circlePackView") {
-                        createCirclePack(tempObj);
-                    } else if (selButton.id == "treemapView") {
-                        createTreemap(tempObj);
-                    } else if (selButton.id == "treeView") {
-                        // createTree(tempObj);
-                        createCollapseTree(tempObj);
-                    } else if (selButton.id == "ordinaryView") {
-                        createOrdinary(tempObj);
-                    }
-                });
-            } else {
-                var getFullList = new XMLHttpRequest();
-                getFullList.onreadystatechange = function () {
+            if (document.querySelector("#categoryView").className === "buttonSelected") {
+                var getGitTK = new XMLHttpRequest();
+                getGitTK.onreadystatechange = function() {
                     if (this.readyState == 4 && this.status == 200) {
-                        var getList = JSON.parse(this.responseText);
-                        var fullList = Object.keys(getList).map(function (key) {
-                            return getList[key];
-                        });
-                        document.querySelector("#contentPane").innerHTML = "";
-                        if (resultList.length != 0) {
-                            fullList.splice(fullList.indexOf(resultList[0].testName), 1);
-                            var passCount = resultList[0].testResult == "Pass" ? 1 : 0;
-                            var resultGroup = [resultList[0]];
-                            if (resultList.length === 1) {
-                                createCard(passCount, resultGroup, resultList[0].testName);
-                            } else {
-                                for (var i = 1; i < resultList.length; i++) {
-                                    if (resultList[i].testName != resultList[i - 1].testName) {
-                                        fullList.splice(fullList.indexOf(resultList[i - 1].testName), 1);
-                                        createCard(passCount, resultGroup, resultList[i - 1].testName);
-                                        passCount = 0;
-                                        resultGroup = [resultList[i]];
-                                    } else {
-                                        resultGroup.push(resultList[i]);
+                        var token = this.responseText;
+                        if (token !== "") {
+                            //make githubrequest to get issues
+                            var xhrIssue = new XMLHttpRequest;
+                            var queryObj = {
+                                milestone: "*",
+                                state: "open",
+                                labels: "question",
+                                access_token: token,
+                                per_page: 100,
+                                direction: "desc",
+                                sort: "due_date"
+                            };
+                            xhrIssue.onreadystatechange = function() {
+                                if (this.readyState == 4 && this.status == 200) {
+                                    var issueList = JSON.parse(this.responseText);
+                                    for (let s = 0; s < issueList.length; s++) {
+                                        var issue = {
+                                            testID: 30,
+                                            issueURL: issueList[s].html_url,
+                                            issueName: issueList[s].title,
+                                            labels: issueList[s].labels,
+                                            milestone: issueList[s].milestone,
+                                            author: issueList[s].user,
+                                            assignees: issueList[s].assignees
+                                        }
+                                        resultList.push(issue);
                                     }
-                                    passCount = resultList[i].testResult == "Pass" ? passCount + 1 : passCount;
-                                    if (i == resultList.length - 1) {
-                                        createCard(passCount, resultGroup, resultList[i].testName);
-                                    }
+                                    manageReports(resultList);
                                 }
                             }
-                        }
-                        fullList.sort(function (a, b) {
-                            if (a > b) {
-                                return 1;
-                            } else if (a < b) {
-                                return -1;
-                            } else {
-                                return 0;
+                            xhrIssue.open("GET", "https://api.github.com/repos/sillicon/ReportDashboard/issues" + formatParams(queryObj));
+                            xhrIssue.send();
+                        } else {
+                            var requireLogin = {
+                                testID: 30,
+                                loginURL: "./login/github"
                             }
-                        });
-                        for (var i = 0; i < fullList.length; i++) {
-                            var element = fullList[i];
-                            createCard(0, [], fullList[i]);
+                            resultList.push(requireLogin);
+                            manageReports(resultList);
                         }
-                    } else if (this.readyState == 4) {
-                        document.querySelector("#contentPane").innerHTML = this.responseText;
                     }
                 }
-                getFullList.open("GET", "./getIDRef");
-                getFullList.send();
+                getGitTK.open("GET", "./getGitToken");
+                getGitTK.send();
+            } else {
+                manageReports(resultList);
             }
         } else if (this.readyState == 4) {
             document.querySelector("#contentPane").innerHTML = this.responseText;
@@ -187,6 +131,143 @@ function checkTestArea() {
     xmlHTTP.open("GET", "./getLatestReports" + formatParams(requestParams));
     xmlHTTP.send();
     document.querySelector("#contentPane").innerHTML = "<div id =\"loader\" class=\"loader\"></div>";
+}
+
+function manageReports(resultList) {
+    if (document.querySelector("#categoryView").className === "buttonSelected") {
+        d3.json("getTestName", function(error, root) {
+            if (error) throw error;
+            var tempObj = {
+                testName: "QA Category",
+                child: root
+            }
+            //DFS - Greedy
+            for (var i = 0; i < resultList.length; i++) {
+                var depthObj = [tempObj];
+                var arr = [0];
+                var found = false;
+                while (!found && depthObj.length > 0) {
+                    if (arr[arr.length - 1] <= depthObj[depthObj.length - 1].child.length - 1) {
+                        if (depthObj[depthObj.length - 1].child[arr[arr.length - 1]].hasOwnProperty("child") &&
+                            !(depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child[0].hasOwnProperty("cateName") || depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child[0].hasOwnProperty("issueURL"))) {
+                            depthObj.push(depthObj[depthObj.length - 1].child[arr[arr.length - 1]]);
+                            arr.push(0);
+                        } else if (depthObj[depthObj.length - 1].child[arr[arr.length - 1]].id == resultList[i].testID) {
+                            if (!depthObj[depthObj.length - 1].child[arr[arr.length - 1]].hasOwnProperty("child")) {
+                                depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child = [];
+                            }
+                            if (resultList[i].hasOwnProperty("loginURL")) {
+                                depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child.push({
+                                    loginURL: resultList[i].loginURL
+                                });
+                            } else if (resultList[i].hasOwnProperty("issueURL")) {
+                                depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child.push({
+                                    issueURL: resultList[i].issueURL,
+                                    issueName: resultList[i].issueName,
+                                    labels: resultList[i].labels,
+                                    milestone: resultList[i].milestone,
+                                    author: resultList[i].author,
+                                    assignees: resultList[i].assignees
+                                });
+                            } else {
+                                depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child.push({
+                                    testName: resultList[i].fileName,
+                                    testResult: resultList[i].testResult,
+                                    cateName: resultList[i].testName
+                                });
+                                if (i == resultList.length - 1 || resultList[i].testID != resultList[i + 1].testID) {
+                                    depthObj[depthObj.length - 1].child[arr[arr.length - 1]].testResult = resultList[i].testResult;
+                                }
+                            }
+                            if (i < resultList.length - 1) {
+                                found = true;
+                            } else {
+                                arr[arr.length - 1]++;
+                            }
+                        } else {
+                            arr[arr.length - 1]++;
+                        }
+                    } else {
+                        for (var j = 0; j < depthObj[depthObj.length - 1].child.length; j++) {
+                            if (depthObj[depthObj.length - 1].child[j].hasOwnProperty("testResult") &&
+                                (!depthObj[depthObj.length - 1].hasOwnProperty("testResult") || depthObj[depthObj.length - 1].child[j].testResult == "Fail")) {
+                                depthObj[depthObj.length - 1].testResult = depthObj[depthObj.length - 1].child[j].testResult;
+                            }
+                        }
+                        arr.pop();
+                        depthObj.pop();
+                        arr[arr.length - 1]++;
+                    }
+                }
+            }
+            document.querySelector("#contentPane").innerHTML = "";
+            var selButton = document.querySelector("#buttonGroup2 .buttonSelected");
+            if (selButton.id == "sunburstView") {
+                createSunburst(tempObj);
+            } else if (selButton.id == "circlePackView") {
+                createCirclePack(tempObj);
+            } else if (selButton.id == "treemapView") {
+                createTreemap(tempObj);
+            } else if (selButton.id == "treeView") {
+                // createTree(tempObj);
+                createCollapseTree(tempObj);
+            } else if (selButton.id == "ordinaryView") {
+                createOrdinary(tempObj);
+            }
+        });
+    } else {
+        var getFullList = new XMLHttpRequest();
+        getFullList.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var getList = JSON.parse(this.responseText);
+                var fullList = Object.keys(getList).map(function(key) {
+                    return getList[key];
+                });
+                document.querySelector("#contentPane").innerHTML = "";
+                if (resultList.length !== 0) {
+                    fullList.splice(fullList.indexOf(resultList[0].testName), 1);
+                    var passCount = resultList[0].testResult == "Pass" ? 1 : 0;
+                    var resultGroup = [resultList[0]];
+                    if (resultList.length === 1) {
+                        createCard(passCount, resultGroup, resultList[0].testName);
+                    } else {
+                        for (var i = 1; i < resultList.length; i++) {
+                            if (resultList[i].testName != resultList[i - 1].testName) {
+                                fullList.splice(fullList.indexOf(resultList[i - 1].testName), 1);
+                                createCard(passCount, resultGroup, resultList[i - 1].testName);
+                                passCount = 0;
+                                resultGroup = [resultList[i]];
+                            } else {
+                                resultGroup.push(resultList[i]);
+                            }
+                            passCount = resultList[i].testResult == "Pass" ? passCount + 1 : passCount;
+                            if (i == resultList.length - 1) {
+                                createCard(passCount, resultGroup, resultList[i].testName);
+                            }
+                        }
+                    }
+                }
+                fullList.sort(function(a, b) {
+                    if (a > b) {
+                        return 1;
+                    } else if (a < b) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                });
+                for (var i = 0; i < fullList.length; i++) {
+                    if (fullList[i].indexOf("Area 30") < 0 && fullList[i].indexOf("Area 31") < 0) { // do not show github card
+                        createCard(0, [], fullList[i]);
+                    }
+                }
+            } else if (this.readyState == 4) {
+                document.querySelector("#contentPane").innerHTML = this.responseText;
+            }
+        }
+        getFullList.open("GET", "./getIDRef");
+        getFullList.send();
+    }
 }
 
 function createCard(passCount, resultGroup, testField) {
@@ -216,7 +297,7 @@ function createCard(passCount, resultGroup, testField) {
             .attr("font-size", "40px")
             .attr("fill", "#b6b6b6")
             .attr("font-weight", "bold")
-            .text(function () {
+            .text(function() {
                 if (passCount < totalTest) {
                     return totalTest - passCount;
                 }
@@ -229,7 +310,7 @@ function createCard(passCount, resultGroup, testField) {
             .attr("y", svgHeight / 2 + 70)
             .attr("font-size", "1.5rem")
             .attr("fill", "#b6b6b6")
-            .text(function () {
+            .text(function() {
                 if (passCount < totalTest) {
                     return "Fail";
                 }
@@ -237,7 +318,7 @@ function createCard(passCount, resultGroup, testField) {
             });
         var strWidth2 = resultLabel.node().getComputedTextLength();
         resultLabel.attr("x", svgWidth / 2 - strWidth2 / 2);
-        var successArc = svg.data(function () {
+        var successArc = svg.data(function() {
                 var temp = [];
                 for (var i = 0; i < resultGroup.length; i++) {
                     if (resultGroup[i].testResult == "Pass") {
@@ -248,7 +329,7 @@ function createCard(passCount, resultGroup, testField) {
             }).append('path')
             .attr('class', 'successArc')
             .attr('transform', 'translate(' + (width / 2 + margin.left) + ',' + (height / 2 + margin.top) + ')');
-        var failArc = svg.data(function () {
+        var failArc = svg.data(function() {
                 var temp = [];
                 for (var i = 0; i < resultGroup.length; i++) {
                     if (resultGroup[i].testResult == "Fail") {
@@ -269,7 +350,7 @@ function createCard(passCount, resultGroup, testField) {
             .startAngle(-Math.PI * 3 / 4 + percent * Math.PI * 3 / 2);
         var temp1 = 0,
             temp2 = 0;
-        var timer = setInterval(function () {
+        var timer = setInterval(function() {
             if (temp1 < percent * 100) {
                 arc1.endAngle(-Math.PI * 3 / 4 + temp1 / 100 * Math.PI * 3 / 2);
                 successArc.attr('d', arc1);
@@ -310,7 +391,7 @@ function createCard(passCount, resultGroup, testField) {
             .startAngle(-Math.PI * 3 / 4)
             .endAngle(Math.PI * 3 / 4);
         var temp = 0;
-        var timer = setInterval(function () {
+        var timer = setInterval(function() {
             if (temp < 100) {
                 arc.endAngle(-Math.PI * 3 / 4 + temp / 100 * Math.PI * 3 / 2);
                 noneArc.attr('d', arc);
@@ -329,17 +410,17 @@ function createCard(passCount, resultGroup, testField) {
         .text("Test case description");
 
     function bindMouseBehavior(arcElement, arc) {
-        arcElement.on("mouseover", function () {
+        arcElement.on("mouseover", function() {
             arc.outerRadius(width / 2 + 5);
             arcElement.attr('d', arc);
-        }).on("mouseout", function () {
+        }).on("mouseout", function() {
             arc.outerRadius(width / 2);
             arcElement.attr('d', arc);
-        }).on("click", function (d) {
+        }).on("click", function(d) {
             var div = d3.select("#reportList");
             var tempScg = svg._groups[0][0];
             var pos = d3.mouse(tempScg);
-            div.html(function () {
+            div.html(function() {
                 var tempHTML = "";
                 for (var i = 0; i < d.length; i++) {
                     tempHTML += "<span><a href='.\\report\\" + d[i] + "' target='_blank'>" + d[i] + "</a></span><br>";
@@ -347,7 +428,7 @@ function createCard(passCount, resultGroup, testField) {
                 return tempHTML;
             });
             div.style("display", "block");
-            div.style("left", function () {
+            div.style("left", function() {
                 var arcLeft = tempScg.getBoundingClientRect().left,
                     arcWidth = tempScg.getBoundingClientRect().width,
                     tipWidth = this.getBoundingClientRect().width,
@@ -382,7 +463,7 @@ function createCard(passCount, resultGroup, testField) {
                 }
                 return ((arcLeft + pos[0] + scrollWidth + 15) + "px");
             });
-            div.style("top", function () {
+            div.style("top", function() {
                 var arctTop = tempScg.getBoundingClientRect().top,
                     arcHeight = tempScg.getBoundingClientRect().height,
                     tipHeight = this.getBoundingClientRect().height,
@@ -416,19 +497,19 @@ function createTree(jsonObj) {
         .enter().append("path")
         .attr("class", "treeLink")
         .attr("d", d3.linkHorizontal()
-            .x(function (d) {
+            .x(function(d) {
                 return d.y;
             })
-            .y(function (d) {
+            .y(function(d) {
                 return d.x;
             }));
     var node = g.selectAll(".treeNode")
         .data(jsonObj.descendants())
         .enter().append("g")
-        .attr("class", function (d) {
+        .attr("class", function(d) {
             return "treeNode" + (d.children ? " treeNode--internal" : " treeNode--leaf");
         })
-        .attr("transform", function (d) {
+        .attr("transform", function(d) {
             return "translate(" + d.y + "," + d.x + ")";
         })
 
@@ -437,18 +518,21 @@ function createTree(jsonObj) {
 
     node.append("text")
         .attr("dy", 3)
-        .attr("x", function (d) {
+        .attr("x", function(d) {
             return d.children ? -8 : 8;
         })
-        .style("text-anchor", function (d) {
+        .style("text-anchor", function(d) {
             return d.children ? "end" : "start";
         })
-        .text(function (d) {
+        .text(function(d) {
             return d.data.testName;
         });
 }
 
 function createCollapseTree(jsonObj) {
+    if (!isIE && !isEdge) {
+        document.querySelector("#exprotContainer").style.display = "block";
+    }
     var margin = {
         top: 0,
         right: 80,
@@ -490,20 +574,21 @@ function createCollapseTree(jsonObj) {
             links = treeData.descendants().slice(1);
 
         // Normalize for fixed-depth.
-        nodes.forEach(function (d) {
-            d.y = d.depth * 180;
+        var normalize = width / 5;
+        nodes.forEach(function(d) {
+            d.y = d.depth * normalize;
         });
 
         // Update the nodes…
         var node = svg.selectAll("g.treeNode")
-            .data(nodes, function (d) {
+            .data(nodes, function(d) {
                 return d.id || (d.id = ++i);
             });
 
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("g")
             .attr("class", "treeNode")
-            .attr("transform", function (d) {
+            .attr("transform", function(d) {
                 return "translate(" + source.y0 + "," + source.x0 + ")";
             })
             .on("click", click);
@@ -512,7 +597,7 @@ function createCollapseTree(jsonObj) {
         nodeEnter.append('circle')
             .attr('class', 'treeNode')
             .attr('r', 1e-6)
-            .style("fill", function (d) {
+            .style("fill", function(d) {
                 if (d.data.testResult == undefined) {
                     return d.children || d._children ? "lightsteelblue" : "#a1a1a1";
                 } else if (d.data.testResult == "Pass") {
@@ -525,19 +610,30 @@ function createCollapseTree(jsonObj) {
         // Add labels for the nodes
         nodeEnter.append('text')
             .attr("dy", ".35em")
-            .attr("x", function (d) {
+            .attr("x", function(d) {
                 return d.children || d._children ? -13 : 13;
             })
-            .attr("text-anchor", function (d) {
+            .attr("text-anchor", function(d) {
                 return d.children || d._children ? "end" : "start";
             })
             .attr('cursor', 'pointer')
-            .text(function (d) {
-                return d.data.testName;
+            .text(function(d) {
+                if (d.data.hasOwnProperty("loginURL")) {
+                    return "Click here to authorize GitHub access";
+                } else if (d.data.hasOwnProperty("issueURL")) {
+                    return d.data.issueName;
+                } else {
+                    return d.data.testName;
+                }
+
             })
-            .on("click", function (d) {
+            .on("click", function(d) {
                 if (d.data.hasOwnProperty("cateName")) {
                     window.open(".\\report\\" + d.data.testName);
+                } else if (d.data.hasOwnProperty("loginURL")) {
+                    window.open(".\\login\\github");
+                } else if (d.data.hasOwnProperty("issueURL")) {
+                    window.open(d.data.issueURL);
                 }
             });
 
@@ -547,7 +643,7 @@ function createCollapseTree(jsonObj) {
         // Transition to the proper position for the node
         nodeUpdate.transition()
             .duration(duration)
-            .attr("transform", function (d) {
+            .attr("transform", function(d) {
                 return "translate(" + d.y + "," + d.x + ")";
             });
 
@@ -559,7 +655,7 @@ function createCollapseTree(jsonObj) {
         // Transition exiting nodes to the parent's new position.
         var nodeExit = node.exit().transition()
             .duration(duration)
-            .attr("transform", function (d) {
+            .attr("transform", function(d) {
                 return "translate(" + source.y + "," + source.x + ")";
             })
             .remove();
@@ -572,14 +668,14 @@ function createCollapseTree(jsonObj) {
 
         // Update the links…
         var link = svg.selectAll("path.treeLink")
-            .data(links, function (d) {
+            .data(links, function(d) {
                 return d.id;
             });
 
         // Enter any new links at the parent's previous position.
         var linkEnter = link.enter().insert('path', "g")
             .attr("class", "treeLink")
-            .attr('d', function (d) {
+            .attr('d', function(d) {
                 var o = {
                     x: source.x0,
                     y: source.y0
@@ -593,14 +689,14 @@ function createCollapseTree(jsonObj) {
         // Transition back to the parent element position
         linkUpdate.transition()
             .duration(duration)
-            .attr('d', function (d) {
+            .attr('d', function(d) {
                 return diagonal(d, d.parent)
             });
 
         // Remove any exiting links
         var linkExit = link.exit().transition()
             .duration(duration)
-            .attr('d', function (d) {
+            .attr('d', function(d) {
                 var o = {
                     x: source.x,
                     y: source.y
@@ -610,7 +706,7 @@ function createCollapseTree(jsonObj) {
             .remove();
 
         // Store the old positions for transition.
-        nodes.forEach(function (d) {
+        nodes.forEach(function(d) {
             d.x0 = d.x;
             d.y0 = d.y;
         });
@@ -634,6 +730,7 @@ function createCollapseTree(jsonObj) {
 }
 
 function createCirclePack(jsonObj) {
+    document.querySelector("#exprotContainer").style.display = "block";
     var tempStr = getComputedStyle(document.querySelector("#contentPane")).width;
     var svgWidth = Math.min(parseInt(tempStr.substr(0, tempStr.length - 2)) - 50, window.innerHeight - 200);
     var svgHeight = svgWidth;
@@ -654,13 +751,13 @@ function createCirclePack(jsonObj) {
     jsonObj = d3.hierarchy(jsonObj, function children(d) {
             return d.child;
         })
-        .sum(function (d) {
+        .sum(function(d) {
             if (d.child != null) {
                 return 0;
             }
             return 1;
         })
-        .sort(function (a, b) {
+        .sort(function(a, b) {
             return b.value - a.value;
         });
     var focus = jsonObj,
@@ -669,10 +766,10 @@ function createCirclePack(jsonObj) {
     var circle = g.selectAll("circle")
         .data(nodes)
         .enter().append("circle")
-        .attr("class", function (d) {
+        .attr("class", function(d) {
             return d.parent ? d.children ? "circlePacknode" : "circlePacknode circlePacknode--leaf" : "circlePacknode circlePacknode--root";
         })
-        .style("fill", function (d) {
+        .style("fill", function(d) {
             if (d.children) {
                 return color(d.depth);
             } else if (d.data.hasOwnProperty("testResult")) {
@@ -684,7 +781,7 @@ function createCirclePack(jsonObj) {
                 return "#c7c7c7";
             }
         })
-        .on("click", function (d) {
+        .on("click", function(d) {
             if (focus !== d) {
                 zoom(d);
                 d3.event.stopPropagation();
@@ -696,18 +793,18 @@ function createCirclePack(jsonObj) {
         .data(nodes)
         .enter().append("text")
         .attr("class", "circlePacklabel")
-        .style("fill-opacity", function (d) {
+        .style("fill-opacity", function(d) {
             return d.parent === jsonObj ? 1 : 0;
         })
-        .style("display", function (d) {
+        .style("display", function(d) {
             return d.parent === jsonObj ? "inline" : "none";
         })
-        .text(function (d) {
+        .text(function(d) {
             return d.data.testName;
         });
     var node = g.selectAll("circle,text");
     svg.style("background", color(0))
-        .on("click", function () {
+        .on("click", function() {
             zoom(jsonObj);
         });
     zoomTo([jsonObj.x, jsonObj.y, jsonObj.r * 2 + margin]);
@@ -717,24 +814,24 @@ function createCirclePack(jsonObj) {
         focus = d;
         var transition = d3.transition()
             .duration(d3.event.altKey ? 7500 : 750)
-            .tween("zoom", function (d) {
+            .tween("zoom", function(d) {
                 var i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2 + margin]);
-                return function (t) {
+                return function(t) {
                     zoomTo(i(t));
                 };
             });
 
         transition.selectAll("text")
-            .filter(function (d) {
+            .filter(function(d) {
                 return d.parent === focus || this.style.display === "inline";
             })
-            .style("fill-opacity", function (d) {
+            .style("fill-opacity", function(d) {
                 return d.parent === focus ? 1 : 0;
             })
-            .on("start", function (d) {
+            .on("start", function(d) {
                 if (d.parent === focus) this.style.display = "inline";
             })
-            .on("end", function (d) {
+            .on("end", function(d) {
                 if (d.parent !== focus) this.style.display = "none";
             });
     }
@@ -742,16 +839,17 @@ function createCirclePack(jsonObj) {
     function zoomTo(v) {
         var k = diameter / v[2];
         view = v;
-        node.attr("transform", function (d) {
+        node.attr("transform", function(d) {
             return "translate(" + (d.x - v[0]) * k + "," + (d.y - v[1]) * k + ")";
         });
-        circle.attr("r", function (d) {
+        circle.attr("r", function(d) {
             return d.r * k;
         });
     }
 }
 
 function createSunburst(jsonObj) {
+    document.querySelector("#exprotContainer").style.display = "block";
     var tempStr = getComputedStyle(document.querySelector("#contentPane")).width;
     var svgWidth = Math.min(parseInt(tempStr.substr(0, tempStr.length - 2)) - 50, window.innerHeight - 250);
     var svgHeight = svgWidth + 100;
@@ -763,16 +861,16 @@ function createSunburst(jsonObj) {
         .range([0, radius])
     var partition = d3.partition();
     var arc = d3.arc()
-        .startAngle(function (d) {
+        .startAngle(function(d) {
             return Math.max(0, Math.min(2 * Math.PI, x(d.x0)));
         })
-        .endAngle(function (d) {
+        .endAngle(function(d) {
             return Math.max(0, Math.min(2 * Math.PI, x(d.x1)));
         })
-        .innerRadius(function (d) {
+        .innerRadius(function(d) {
             return Math.max(0, y(d.y0));
         })
-        .outerRadius(function (d) {
+        .outerRadius(function(d) {
             return Math.max(0, y(d.y1));
         });
     var svg = d3.select("#contentPane").append("svg")
@@ -783,7 +881,7 @@ function createSunburst(jsonObj) {
     jsonObj = d3.hierarchy(jsonObj, function children(d) {
         return d.child;
     });
-    jsonObj.sum(function (d) {
+    jsonObj.sum(function(d) {
         if (d.child != null) {
             return 0;
         }
@@ -793,7 +891,7 @@ function createSunburst(jsonObj) {
         .data(partition(jsonObj).descendants())
         .enter().append("path")
         .attr("d", arc)
-        .attr("class", function (d) {
+        .attr("class", function(d) {
             if (d.data.hasOwnProperty("testResult")) {
                 if (d.data.testResult == "Pass") {
                     return "sunburstPath testPass";
@@ -806,7 +904,7 @@ function createSunburst(jsonObj) {
         .on("click", click)
         .on("mouseover", hover)
         .append("title")
-        .text(function (d) {
+        .text(function(d) {
             return d.data.testName;
         });
 
@@ -823,18 +921,18 @@ function createSunburst(jsonObj) {
         } else {
             svg.transition()
                 .duration(750)
-                .tween("scale", function () {
+                .tween("scale", function() {
                     var xd = d3.interpolate(x.domain(), [d.x0, d.x1]),
                         yd = d3.interpolate(y.domain(), [d.y0, 1]),
                         yr = d3.interpolate(y.range(), [d.y0 ? 20 : 0, radius]);
-                    return function (t) {
+                    return function(t) {
                         x.domain(xd(t));
                         y.domain(yd(t)).range(yr(t));
                     };
                 })
                 .selectAll("path")
-                .attrTween("d", function (d) {
-                    return function () {
+                .attrTween("d", function(d) {
+                    return function() {
                         return arc(d);
                     };
                 });
@@ -890,8 +988,9 @@ function createSunburst(jsonObj) {
 }
 
 function createOrdinary(jsonObj) {
+    document.querySelector("#exprotContainer").style.display = "none";
     var depthObj = [jsonObj];
-    var divGroup = [makeDiv(jsonObj, document.querySelector("#contentPane"))]
+    var divGroup = [makeDiv(jsonObj, document.querySelector("#contentPane"))];
     var arr = [0];
     while (depthObj.length > 0) {
         if (arr[arr.length - 1] <= depthObj[depthObj.length - 1].child.length - 1) {
@@ -923,72 +1022,140 @@ function createOrdinary(jsonObj) {
         div.appendChild(testName);
         testName.className = "fieldTitle";
         testName.style.cursor = "pointer";
-        var radioButton = document.createElement("div");
-        var nameStr = document.createElement("div");
-        if (obj.hasOwnProperty("testResult")) {
-            if (obj.testResult === "Pass") {
-                div.style.backgroundColor = "#deffde";
-                radioButton.textContent = "\u2714";
+        div.style.backgroundColor = "#fafafa";
+        if (!obj.hasOwnProperty("loginURL") && !obj.hasOwnProperty("issueURL")) {
+            var radioButton = document.createElement("img");
+            if (["Test Category 4", "Test Area 30", "Test Area 31"].indexOf(obj.testName) > -1) {
+                radioButton.src = "../images/github.svg";
+            } else if (obj.hasOwnProperty("testResult")) {
+                if (obj.testResult === "Pass") {
+                    div.style.backgroundColor = "#deffde";
+                    radioButton.src = "../images/tick.svg";
+                } else {
+                    div.style.backgroundColor = "#ffe7e7";
+                    radioButton.src = "../images/cross.svg";
+                }
             } else {
-                div.style.backgroundColor = "#ffe7e7";
-                radioButton.textContent = "\u2717";
+                radioButton.src = "../images/question.svg";
             }
+            var nameStr = document.createElement("div");
+            nameStr.textContent = obj.testName;
+            nameStr.style.pointerEvents = "none";
+            radioButton.height = "25";
+            radioButton.width = "20";
+            radioButton.style.cssFloat = "left";
+            radioButton.style.pointerEvents = "none";
+            testName.appendChild(radioButton);
+            nameStr.style.cssFloat = "left";
         } else {
-            div.style.backgroundColor = "#f2f2f2";
-            radioButton.textContent = "\u2753";
+            var nameStr = document.createElement("a");
+            if (obj.hasOwnProperty("loginURL")) {
+                testName.className += " login";
+                nameStr.textContent = "Click here to authorize GitHub access";
+                nameStr.href = obj.loginURL;
+            } else if (obj.hasOwnProperty("issueURL")) {
+                testName.className += " issueTitle";
+                nameStr.textContent = obj.issueName;
+                nameStr.href = obj.issueURL;
+                nameStr.target = "_blank";
+                nameStr.className = "issueName";
+            }
         }
-        nameStr.textContent = obj.testName;
-        radioButton.style.cssFloat = "left";
-        radioButton.style.pointerEvents = "none";
-        nameStr.style.cssFloat = "left";
-        nameStr.style.pointerEvents = "none";
-        testName.appendChild(radioButton);
         testName.appendChild(nameStr);
+        if (obj.hasOwnProperty("issueURL")) {
+            div.appendChild(document.createElement("br"));
+            for (let l = 0; l < obj.labels.length; l++) {
+                var label = document.createElement("div");
+                label.className = "label";
+                label.textContent = obj.labels[l].name;
+                label.style.backgroundColor = "#" + obj.labels[l].color;
+                //check background color if it's too light
+                var rgb = parseInt(obj.labels[l].color, 16); // convert rrggbb to decimal
+                var r = (rgb >> 16) & 0xff; // extract red
+                var g = (rgb >> 8) & 0xff; // extract green
+                var b = (rgb >> 0) & 0xff; // extract blue
+                var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+                if (luma > 150) {
+                    label.style.color = "black";
+                } else {
+                    label.style.color = "white";
+                }
+                div.appendChild(label);
+            }
+            var info = document.createElement("div");
+            info.className = "info";
+            info.textContent = "assigned to:";
+            if (obj.assignees.length === 0) {
+                info.textContent += " none";
+            } else {
+                for (let assign = 0; assign < obj.assignees.length; assign++) {
+                    info.textContent += " " + obj.assignees[assign].login;
+                }
+            }
+            info.textContent += " created by: " + obj.author.login + " milestone: " + obj.milestone.title;
+            div.appendChild(info);
+        }
+
         if (obj.hasOwnProperty("child")) {
-            var arrow = document.createElement("div");
+            var arrow = document.createElement("img");
             arrow.style.cssFloat = "left";
             arrow.style.pointerEvents = "none";
-            arrow.textContent = "\u25C0";
+            arrow.height = "25";
+            arrow.width = "15";
+            arrow.src = "../images/leftarrow.svg";
             if (div.parentNode == document.querySelector("#contentPane")) {
                 arrow.className = "expanded";
             }
             testName.appendChild(arrow);
-            testName.onclick = function (e) {
-                var parent = e.target.parentNode;
-                if (e.target.childNodes[2].className == "") {
-                    for (var i = 1; i < parent.childNodes.length; i++) {
-                        parent.childNodes[i].className = parent.childNodes[i].className.split(" ")[0];
+            testName.onclick = function(e) {
+                if (!(e.target.tagName === "IMG" && e.target.src.indexOf("info.svg") > 0)) {
+                    var parent = e.target.parentNode;
+                    if (e.target.childNodes[2].className == "") {
+                        for (var i = 1; i < parent.childNodes.length; i++) {
+                            parent.childNodes[i].className = parent.childNodes[i].className.split(" ")[0];
+                        }
+                        e.target.childNodes[2].className = "expanded";
+                    } else {
+                        for (var i = 1; i < parent.childNodes.length; i++) {
+                            parent.childNodes[i].className += " toggled";
+                        }
+                        e.target.childNodes[2].className = "";
                     }
-                    e.target.childNodes[2].className = "expanded";
-                } else {
-                    for (var i = 1; i < parent.childNodes.length; i++) {
-                        parent.childNodes[i].className += " toggled";
-                    }
-                    e.target.childNodes[2].className = "";
                 }
             }
         } else if (obj.hasOwnProperty("cateName")) {
-            testName.onclick = function () {
+            testName.onclick = function() {
                 window.open(".\\report\\" + obj.testName);
             }
             testName.style.height = "30px";
             var descrip = document.createElement("div");
-            var tempCollect = obj.testName.substring(0, obj.testName.lastIndexOf(".")).match(/[a-zA-Z ]+|[0-9_]+/g);
-            if (tempCollect.length > 1) {
-                tempCollect = tempCollect[1];
-                var tempCol = tempCollect.split(/_/g);
-                tempCollect = "Test Date: " + tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2] + "\n" + "Upload Time: " + tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
-            }                
+            var tempCollect = obj.testName.substring(0, obj.testName.lastIndexOf(".")).match(/[a-zA-Z ]+|[0-9_]+/g)[1];
+            var tempCol = tempCollect.split(/_/g);
+            tempCollect = "Test Date: " + tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2] + "\n" + "Upload Time: " + tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
             descrip.textContent = tempCollect;
             descrip.style.whiteSpace = "pre";
-            descrip.style.margin = "auto auto auto 47px";
+            descrip.style.margin = "auto auto 10px 30px";
             div.appendChild(descrip);
+        }
+        if (obj.hasOwnProperty("id") && ["Test Area 30", "Test Area 31"].indexOf(obj.testName) < 0) {
+            var infoButton = document.createElement("a");
+            infoButton.href = "https://github.com/sillicon";
+            infoButton.target = '_blank';
+            var infoIcon = document.createElement("img");
+            infoIcon.height = "25";
+            infoIcon.width = "20";
+            infoIcon.style.cssFloat = "right";
+            infoIcon.src = "../images/info.svg";
+            infoButton.appendChild(infoIcon);
+            testName.appendChild(infoButton);
         }
         return div;
     }
 }
 
 function createTreemap(jsonObj) {
+    document.querySelector("#exprotContainer").style.display = "none";
+    jsonObj.child.splice(3); // do not show github issues in Treemap view
     var tempStr = getComputedStyle(document.querySelector("#contentPane")).width;
     var svgWidth = parseInt(tempStr.substr(0, tempStr.length - 2)) - 50;
     var svgHeight = svgWidth + 100;
@@ -1011,7 +1178,7 @@ function createTreemap(jsonObj) {
     jsonObj = d3.hierarchy(jsonObj, function children(d) {
         return d.child;
     });
-    jsonObj.sum(function (d) {
+    jsonObj.sum(function(d) {
         if (d.child != null) {
             if (d.hasOwnProperty("id")) {
                 return 1;
@@ -1027,11 +1194,11 @@ function createTreemap(jsonObj) {
         .selectAll(".treemapNode")
         .data(jsonObj.descendants())
         .enter().append("g")
-        .attr("transform", function (d) {
+        .attr("transform", function(d) {
             return "translate(" + d.x0 + "," + d.y0 + ")";
         })
         .attr("class", "treemapNode")
-        .each(function (d) {
+        .each(function(d) {
             d.node = this;
         })
         .on("mouseover", hovered(true))
@@ -1039,19 +1206,19 @@ function createTreemap(jsonObj) {
         .on("click", click);
 
     cell.append("rect")
-        .attr("id", function (d) {
+        .attr("id", function(d) {
             if (d.data.hasOwnProperty("cateName")) {
                 return "rect-" + encodeURI(d.data.testName.substring(0, d.data.testName.lastIndexOf(".")));
             }
             return "rect-" + encodeURI(d.data.testName);
         })
-        .attr("width", function (d) {
+        .attr("width", function(d) {
             return d.x1 - d.x0;
         })
-        .attr("height", function (d) {
+        .attr("height", function(d) {
             return d.y1 - d.y0;
         })
-        .style("fill", function (d) {
+        .style("fill", function(d) {
             if (d.data.hasOwnProperty("cateName")) {
                 if (d.data.testResult == "Pass") {
                     return "#79de79";
@@ -1063,14 +1230,14 @@ function createTreemap(jsonObj) {
         });
 
     cell.append("clipPath")
-        .attr("id", function (d) {
+        .attr("id", function(d) {
             if (d.data.hasOwnProperty("cateName")) {
                 return "clip-" + encodeURI(d.data.testName.substring(0, d.data.testName.lastIndexOf(".")));
             }
             return "clip-" + encodeURI(d.data.testName);
         })
         .append("use")
-        .attr("xlink:href", function (d) {
+        .attr("xlink:href", function(d) {
             if (d.data.hasOwnProperty("cateName")) {
                 return "#rect-" + encodeURI(d.data.testName.substring(0, d.data.testName.lastIndexOf(".")));
             }
@@ -1079,76 +1246,74 @@ function createTreemap(jsonObj) {
 
     var label = cell.append("text")
         .attr("class", "treemapNode")
-        .attr("clip-path", function (d) {
+        .attr("clip-path", function(d) {
             if (d.data.hasOwnProperty("cateName")) {
                 return "url(#clip-" + encodeURI(d.data.testName.substring(0, d.data.testName.lastIndexOf("."))) + ")";
             }
             return "url(#clip-" + encodeURI(d.data.testName) + ")";
         });
 
-    label.filter(function (d) {
+    label.filter(function(d) {
             return d.children;
         })
         .selectAll("tspan")
-        .data(function (d) {
+        .data(function(d) {
             return [d.data.testName];
         })
         .enter().append("tspan")
-        .attr("x", function (d, i) {
+        .attr("x", function(d, i) {
             return i ? null : 5;
         })
         .attr("y", 20)
-        .text(function (d) {
+        .text(function(d) {
             return d;
         });
 
-    label.filter(function (d) {
+    label.filter(function(d) {
             return !d.children;
         })
         .selectAll("tspan")
-        .data(function (d) {
+        .data(function(d) {
             if (d.data.hasOwnProperty("cateName")) {
-                var collect = d.data.testName.substring(0, d.data.testName.lastIndexOf(".")).match(/[a-zA-Z ]+|[0-9_]+/g);
-                if (collect.length > 1) {
-                    var tempCol = collect[1].split(/_/g);
-                    collect[1] = "";
-                    collect[2] = tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2];
-                    collect[3] = tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
-                }                
+                var collect = d.data.testName.substring(0, d.data.testName.lastIndexOf(".")).match(/[a-zA-Z JSAPI4.x-]+|[0-9_]+/g);
+                var tempCol = collect[1].split(/_/g);
+                collect[1] = "";
+                collect[2] = tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2];
+                collect[3] = tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
                 return collect;
             }
             return d.data.testName.split(/ /g);
         })
         .enter().append("tspan")
         .attr("x", 5)
-        .attr("y", function (d, i) {
+        .attr("y", function(d, i) {
             return 20 + i * 20;
         })
-        .text(function (d) {
+        .text(function(d) {
             return d;
         });
-    label.filter(function (d) {
+    label.filter(function(d) {
             return d.data.hasOwnProperty("cateName");
         })
         .attr("class", "treemapNode reportName")
         .attr('cursor', 'pointer');
 
     cell.append("title")
-        .text(function (d) {
+        .text(function(d) {
             return d.data.testName;
         });
 
     function hovered(hover) {
-        return function (d) {
-            d3.selectAll(d.ancestors().map(function (d) {
+        return function(d) {
+            d3.selectAll(d.ancestors().map(function(d) {
                     return d.node;
                 }))
                 .classed("treemapNode--hover", hover)
                 .select("rect")
-                .attr("width", function (d) {
+                .attr("width", function(d) {
                     return d.x1 - d.x0 - hover;
                 })
-                .attr("height", function (d) {
+                .attr("height", function(d) {
                     return d.y1 - d.y0 - hover;
                 });
         };
@@ -1159,6 +1324,102 @@ function createTreemap(jsonObj) {
             window.open(".\\report\\" + d.data.testName);
         }
     }
+}
+
+function exportSVG() {
+    var svg = document.querySelector("#contentPane svg");
+    var prefix = {
+        xmlns: "http://www.w3.org/2000/xmlns/",
+        xlink: "http://www.w3.org/1999/xlink",
+        svg: "http://www.w3.org/2000/svg"
+    };
+    var emptySvg = document.createElement("svg");
+    emptySvg.id = "tempSVG";
+    document.querySelector("#contentPane").appendChild(emptySvg);
+    var emptySvgDeclarationComputed = getComputedStyle(emptySvg);
+    emptySvg.innerHTML = svg.innerHTML;
+    emptySvg.setAttribute("width", svg.getAttribute("width"));
+    emptySvg.setAttribute("height", svg.getAttribute("height"));
+    emptySvg.setAttribute("version", "1.1");
+    emptySvg.setAttribute("xmlns", prefix.svg);
+    emptySvg.setAttribute("xmlns:xlink", prefix.xlink);
+
+    setInlineStyles(emptySvg, emptySvgDeclarationComputed);
+
+    var html = emptySvg.outerHTML;
+    var imgsrc = 'data:image/svg+xml;utf8,' + html;
+    var image = new Image();
+    image.src = imgsrc;
+    image.onload = function(params) {
+        var svg = document.querySelector("#contentPane svg");
+        var canvas = document.createElement("canvas"),
+            context = canvas.getContext("2d");
+        var location = {
+            height: getComputedStyle(svg).height,
+            width: getComputedStyle(svg).width
+        }
+        canvas.height = location.height.substring(0, location.height.length - 2);
+        canvas.width = location.width.substring(0, location.width.length - 2);
+        canvas.style.height = location.height;
+        canvas.style.width = location.width;
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        var canvasdata = canvas.toDataURL();
+        document.querySelector("#tempSVG").remove();
+        var a = document.createElement("a");
+        a.download = "ExportImage.png";
+        a.href = canvasdata;
+        if (isFirefox) {
+            document.querySelector("#contentPane").appendChild(a);
+        }
+        a.click();
+        if (isFirefox) {
+            a.remove();
+        }
+    }
+
+    function setInlineStyles(svg, emptySvgDeclarationComputed) {
+        // hardcode computed css styles inside svg
+        var allElements = traverse(svg);
+        var i = allElements.length;
+        while (i--) {
+            explicitlySetStyle(allElements[i]);
+        }
+
+        function explicitlySetStyle(element) {
+            var cSSStyleDeclarationComputed = getComputedStyle(element);
+            var i, len, key, value;
+            var computedStyleStr = "";
+            for (i = 0, len = cSSStyleDeclarationComputed.length; i < len; i++) {
+                key = cSSStyleDeclarationComputed[i];
+                value = cSSStyleDeclarationComputed.getPropertyValue(key);
+                if (value !== emptySvgDeclarationComputed.getPropertyValue(key)) {
+                    computedStyleStr += key + ":" + value + ";";
+                }
+            }
+            element.setAttribute('style', computedStyleStr);
+        }
+
+        function traverse(obj) {
+            var tree = [];
+            tree.push(obj);
+            visit(obj);
+
+            function visit(node) {
+                if (node && node.hasChildNodes()) {
+                    var child = node.firstChild;
+                    while (child) {
+                        if (child.nodeType === 1 && child.nodeName != 'SCRIPT') {
+                            tree.push(child);
+                            visit(child);
+                        }
+                        child = child.nextSibling;
+                    }
+                }
+            }
+            return tree;
+        }
+    }
+
 }
 
 function getTodayDate() {
@@ -1178,8 +1439,28 @@ function getTodayDate() {
 function formatParams(params) {
     return "?" + Object
         .keys(params)
-        .map(function (key) {
+        .map(function(key) {
             return key + "=" + params[key]
         })
         .join("&")
+}
+
+function preloadImages(array) {
+    if (!preloadImages.list) {
+        preloadImages.list = [];
+    }
+    var list = preloadImages.list;
+    for (var i = 0; i < array.length; i++) {
+        var img = new Image();
+        img.onload = function() {
+            var index = list.indexOf(this);
+            if (index !== -1) {
+                // remove image from the array once it's loaded
+                // for memory consumption reasons
+                list.splice(index, 1);
+            }
+        }
+        list.push(img);
+        img.src = array[i];
+    }
 }

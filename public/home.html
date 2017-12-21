@@ -5,8 +5,12 @@
 <head>
     <title>Sample QA Dashboard</title>
     <link href="css/Home.css" rel="stylesheet" />
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <link href="css/jquery-ui.min.css" rel="stylesheet" />
+    <script src="js/jquery-ui-1.12.1.min.js"></script>
     <script src="js/home.js"></script>
     <script src="js/d3.min.js"></script>
+    <script src="js/d3-scale-chromatic.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
 </head>
@@ -15,13 +19,17 @@
     <div id="page">
         <header id="siteHeader">
             <div id="siteHeaderCenter">
-                <img id="esriLogo" src="images/sampleLogo.png" alt="logo">
+                <img id="sampleLogo" src="images/sampleLogo.png" alt="logo">
                 <div id="siteName">Sample QA Dashboard</div>
             </div>
         </header>
         <div id="content">
             <div id="contentTitle">
-                <div id="envirName">Envir1</div>
+                <div style="width: 80%; max-width: 1200px; margin: auto;">
+                    <div id="envirName">Envir1</div>
+                    <div style="display: inline-block; position: relative; color: white; font-size: 33px; margin: auto 12px auto 12px;">on day:</div>
+                    <input type="date" name="chooseDay" id="chooseDay" onchange="checkTestArea()">
+                </div>
                 <div id="naviContainer">
                     <div id="contentNavi">
                         <a id="envir1" href="#envir1" class="naviActive" onclick="changeEnvir(this)">Envir1</a>
@@ -42,13 +50,16 @@
                 <div id="buttonGroup2">
                     <div id="sunburstView" onclick="changeView(this)">Sunburst</div>
                     <div id="circlePackView" onclick="changeView(this)">Circle Pack</div>
-                    <div id="treeView" onclick="changeView(this)">Tree</div>
-                    <div id="treemapView" onclick="changeView(this)">Treemap</div>
+                    <div id="treemapView"  onclick="changeView(this)">Treemap</div>
+                    <div id="treeView"  onclick="changeView(this)">Tree</div>
                     <div id="ordinaryView" class="buttonSelected" onclick="changeView(this)">Ordinary</div>
                 </div>
             </div>
             <div id="reportList" style="display: none;" class="testListTip"></div>
             <div id="contentPane"></div>
+            <div id="exprotContainer" style="display: none">
+                <div id="exportSVG" onclick="exportSVG()">Export to Image</div>
+            </div>
         </div>
         <div id="footer">
             <div id="footerContainer">

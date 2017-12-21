@@ -30,10 +30,19 @@ router.post("/uploadReport", function (req, res) {
 
     function writeInData(fileName) {
         var reportFilePath = path.join(path.dirname(__dirname), "public", "report", fileName);
+        var tempResult;
+        if (req.body.reportResult.toLowerCase() === "pass") {
+            tempResult = "Pass";
+        } else if (req.body.reportResult.toLowerCase() === "fail") {
+            tempResult = "Fail";
+        } else {
+            res.status(404).send("Test result parameter is not correct!");
+            return;
+        }
         var insertObj = {
             testID: parseInt(req.body.testID),
             testDate: convertToUTC(req.body.reportDate),
-            testResult: req.body.reportResult,
+            testResult: tempResult,
             fileName: fileName,
             browser: req.body.reportBrowser,
             envirTested: req.body.reportEnvi,
@@ -56,7 +65,7 @@ router.post("/uploadReport", function (req, res) {
             })
         });
     }
-});
+})
 
 function findTestName(dbCol, inputID, cb) {
     dbCol.find().toArray(function (err, docs) {
