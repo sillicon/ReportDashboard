@@ -28,9 +28,8 @@ router.get("/queryReports", function (req, res) { // new query with MongoDB
                 envirTested: "Envir3"
             });
         }
-        if (req.query.reportCategory !== null) {
+        if (req.query.reportCategory != null) {
             queryObj.testID = parseInt(req.query.reportCategory);
-            
         }
         if (req.query.requestType === "Date") {
             if (req.query.reportDate !== "") {
