@@ -17,7 +17,7 @@ var deployPath = process.env.deployPath || "";
 passport.use(new Strategy({
         clientID: "4d3e985fc1a04fdf2674",
         clientSecret: "022ba1b17ff29735a2afe03e1f8530a50affbeb0",
-        callbackURL: 'https://nodereport.herokuapp.com//login/github/return'
+        callbackURL: 'https://nodereport.herokuapp.com/login/github/return'
     },
     function(accessToken, refreshToken, profile, cb) {
         profile.accessToken = accessToken;
