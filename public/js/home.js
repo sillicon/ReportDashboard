@@ -964,7 +964,7 @@ function createSunburst(jsonObj) {
             if (obj.data.hasOwnProperty("loginURL")) {
                 nameStr = "Click here to authorize GitHub access";
                 return nameStr;
-            } else if (obj.data.hasOwnProperty("loginURL")) {
+            } else if (obj.data.hasOwnProperty("issueURL")) {
                 nameStr = obj.data.issueName;
             } else {
                 nameStr = obj.data.testName;
