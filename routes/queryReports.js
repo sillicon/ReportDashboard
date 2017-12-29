@@ -3,7 +3,7 @@ var path = require('path');
 var moment = require('moment');
 var router = express.Router();
 
-router.get("/queryReports", function (req, res) { // new query with MongoDB
+router.get("/queryReports", function(req, res) { // new query with MongoDB
     if (!queryValidator(req.query)) {
         res.status(400).send("Missing query parameter!");
     } else {
@@ -29,7 +29,13 @@ router.get("/queryReports", function (req, res) { // new query with MongoDB
             });
         }
         if (req.query.reportCategory != null) {
-            queryObj.testID = parseInt(req.query.reportCategory);
+            var tempCate = req.query.reportCategory.split(",");
+            for (let i = 0; i < tempCate.length; i++) {
+                tempCate[i] = parseInt(tempCate[i]);
+            }
+            queryObj.testID = {
+                $in: tempCate
+            };
         }
         if (req.query.requestType === "Date") {
             if (req.query.reportDate !== "") {
@@ -52,14 +58,20 @@ router.get("/queryReports", function (req, res) { // new query with MongoDB
                 };
             }
         }
-        var result = [[], [], []]
-        collection.find(queryObj).project({_id:0}).toArray(function (err, docs) {
+        var result = [
+            [],
+            [],
+            []
+        ]
+        collection.find(queryObj).project({
+            _id: 0
+        }).toArray(function(err, docs) {
             if (err) {
                 console.log(err);
                 res.status(500).send("Database query failed!");
             } else {
                 var cateCol = db.collection("reportCategory");
-                getIDRef(cateCol, function (err, idRef) {
+                getIDRef(cateCol, function(err, idRef) {
                     if (err) {
                         console.log(err);
                         res.status(500).send("Database query failed!");
@@ -75,7 +87,7 @@ router.get("/queryReports", function (req, res) { // new query with MongoDB
                             }
                         }, this);
                         for (var i = 0; i < result.length; i++) {
-                            result[i].sort(function (a, b) {
+                            result[i].sort(function(a, b) {
                                 if (req.query.sort == "Date") {
                                     if (a.testDate < b.testDate) {
                                         return -1;
@@ -115,7 +127,7 @@ router.get("/queryReports", function (req, res) { // new query with MongoDB
     }
 });
 
-router.get("/getLatestReports", function (req, res) {
+router.get("/getLatestReports", function(req, res) {
     var db = req.app.get('dbConnection');
     // Get the documents collection
     var collection = db.collection('reportResult');
@@ -123,13 +135,15 @@ router.get("/getLatestReports", function (req, res) {
         envirTested: req.query.envir || null,
         testDate: convertToUTC(req.query.testDate)
     };
-    collection.find(queryObj).project({_id:0}).toArray(function (err, docs) {
+    collection.find(queryObj).project({
+        _id: 0
+    }).toArray(function(err, docs) {
         if (err) {
             console.log(err);
             res.status(500).send("Database query failed!");
         } else {
             var cateCol = db.collection("reportCategory");
-            getIDRef(cateCol, function (err, idRef) {
+            getIDRef(cateCol, function(err, idRef) {
                 if (err) {
                     console.log(err);
                     res.status(500).send("Database query failed!");
@@ -137,7 +151,7 @@ router.get("/getLatestReports", function (req, res) {
                     docs.forEach(function(element) {
                         element.testName = idRef[element.testID];
                     }, this);
-                    docs.sort(function (a, b) {
+                    docs.sort(function(a, b) {
                         if (a.testName < b.testName) {
                             return -1;
                         } else if (a.testName > b.testName) {
@@ -159,11 +173,11 @@ router.get("/getLatestReports", function (req, res) {
     });
 });
 
-router.get("/getIDRef", function (req, res) {
+router.get("/getIDRef", function(req, res) {
     var db = req.app.get('dbConnection');
     // Get the documents collection
     var collection = db.collection('reportCategory');
-    getIDRef(collection, function (err, result) {
+    getIDRef(collection, function(err, result) {
         if (err) {
             console.log(err);
             res.status(500).send("Database query failed!");
@@ -174,7 +188,7 @@ router.get("/getIDRef", function (req, res) {
 })
 
 function getIDRef(dbCol, cb) {
-    dbCol.find().toArray(function (err, docs) {
+    dbCol.find().toArray(function(err, docs) {
         if (err) {
             cb(err, returnObj);
         } else {
