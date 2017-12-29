@@ -93,14 +93,14 @@ function onFormLoad() {
                     onCateChange();
                     $('#multi-select').dropdown("set selected", queryObj.reportCategory.split(","));
                 }
-                if (queryObj.reportDevext) {
-                    devChb.checked = true;
+                if (queryObj.reportEnvir1) {
+                    envir1Chb.checked = true;
                 }
-                if (queryObj.reportQAext) {
-                    qaChb.checked = true;
+                if (queryObj.reportEnvir2) {
+                    envir2Chb.checked = true;
                 }
-                if (queryObj.reportProduction) {
-                    proChb.checked = true;
+                if (queryObj.reportEnvir3) {
+                    envir3Chb.checked = true;
                 }
                 handleXHR(queryObj);
             }
@@ -168,7 +168,7 @@ function handleXHR(requestParams) {
                 charts.innerHTML = "";
                 document.getElementById("tooltip").style.opacity = 0;
             }, 400);
-            if (requestParams.hasOwnProperty("reportDevext") && requestParams.reportDevext) {
+            if (requestParams.hasOwnProperty("reportEnvir1") && requestParams.reportEnvir1) {
                 envir1Chb.checked = true;
             } else {
                 envir1Chb.checked = false;
