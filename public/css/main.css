@@ -8,7 +8,7 @@ body {
 }
 
 .shadowBoxDiv {
-    overflow: auto;
+    /* overflow: auto; */
     margin: 30px auto 30px auto;
     width: 80%;
     max-width: 1200px;
@@ -430,4 +430,47 @@ div.testListTip a {
     text-decoration: none;
     color: #005e95;
     line-height: 1.4rem;
+}
+
+#multi-select {
+    border: 1px solid rgb(169, 169, 169);
+    border-radius: inherit;
+    margin: auto 5px auto 5px;
+    min-width: 400px;
+    min-height: 1.2rem;
+    padding: 10px 35px 10px 0;
+    max-width: 600px;
+}
+
+#multi-select input.search {
+    margin: auto 5px auto 10px;
+    width: 20rem !important;
+}
+
+#multi-select div.default.text {
+    margin: auto 5px auto 10px;
+    font-size: 1.2rem;
+}
+
+#multi-select div.menu.transition {
+    min-width: calc(100% - 2px);
+    width: calc(100% + 0px);
+}
+
+#multi-select a.ui.label {
+    background-color: #E8E8E8;
+    border-radius: 4px;
+    box-shadow: 0px 0px 0px 1px rgb(196, 196, 196) inset;
+    padding: 5px 0 7px 10px;
+    margin: 0 5px 3px 5px;
+    cursor: pointer;
+}
+
+#multi-select a.ui.label:hover {
+    background-color: #E0E0E0;
+}
+#multi-select a.ui.label i.delete.icon {
+    margin: 0;
+    padding: 0 5px 0 10px;
+    cursor: pointer;
 }

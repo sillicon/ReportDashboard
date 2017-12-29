@@ -177,6 +177,7 @@ body {
 #contentNavi2 a {
     padding: 5px 10px 5px 10px;
     text-decoration: none;
+    transition: background-color 150ms linear,color 150ms 150ms linear;
 }
 
 #contentNavi2 {
@@ -540,10 +541,10 @@ div.testListTip a {
     padding: 10px 20px 10px 20px;
     box-shadow: 2px 3px 5px 3px #c1c1c1;
     overflow: hidden;
-    -webkit-animation: fadein 0.5s;
+    /* -webkit-animation: fadein 0.5s;
     -moz-animation: fadein 0.5s;
     -o-animation: fadein 0.5s;
-    animation: fadein 0.5s;
+    animation: fadein 0.5s; */
 }
 
 .ordinaryCard:hover {

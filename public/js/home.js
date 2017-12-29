@@ -1110,17 +1110,17 @@ function createOrdinary(jsonObj) {
             testName.onclick = function(e) {
                 if (!(e.target.tagName === "IMG" && e.target.src.indexOf("info.svg") > 0)) {
                     var parent = e.target.parentNode;
-                    if (e.target.childNodes[2].className == "") {
-                        for (var i = 1; i < parent.childNodes.length; i++) {
-                            parent.childNodes[i].className = parent.childNodes[i].className.split(" ")[0];
-                        }
+                    if (e.target.childNodes[2].className == "") {  
                         e.target.childNodes[2].className = "expanded";
                     } else {
-                        for (var i = 1; i < parent.childNodes.length; i++) {
-                            parent.childNodes[i].className += " toggled";
-                        }
                         e.target.childNodes[2].className = "";
                     }
+                    var cardCol = $($(parent).children().splice(1));
+                    cardCol.transition({
+                        animation : 'scale',
+                        duration  : 300,
+                        interval  : 30
+                    });
                 }
             }
         } else if (obj.hasOwnProperty("cateName")) {

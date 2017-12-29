@@ -48,94 +48,75 @@ function onFormLoad() {
     var xmlHTTP = new XMLHttpRequest();
     xmlHTTP.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
+            if ($('#testDate')[0].type != 'date') {
+                $('#testDate').datepicker();
+                $('#dateRange1').datepicker();
+                $('#dateRange2').datepicker();
+            }
+            document.querySelector("body").addEventListener("click", function(e) {
+                if (e.target.tagName != "rect") {
+                    document.querySelector("#testListTip").style.display = "none";
+                }
+            });
             var testList = JSON.parse(this.responseText);
-            for (var i = 0; i < testList.length; i++) {
-                if (testList[i].child != null) {
-                    var optGroup = document.createElement("optgroup");
-                    optGroup.label = testList[i].testName;
-                    cateSel.appendChild(optGroup);
-                    var tempObj = [testList[i]];
-                    var arr = [0];
-                    while (tempObj.length > 0) {
-                        if (arr[arr.length - 1] <= tempObj[tempObj.length - 1].child.length - 1) {
-                            var tempStr = "\xa0\xa0";
-                            for (var j = 0; j < arr.length; j++) {
-                                tempStr += tempStr;
-                            }
-                            var option = document.createElement("option");
-                            option.text = tempStr + tempObj[tempObj.length - 1].child[arr[arr.length - 1]].testName;
-                            option.value = tempObj[tempObj.length - 1].child[arr[arr.length - 1]].id;
-                            if (tempObj[tempObj.length - 1].child[arr[arr.length - 1]].child != null) {
-                                option.disabled = true;
-                                optGroup.appendChild(option);
-                                tempObj.push(tempObj[tempObj.length - 1].child[arr[arr.length - 1]]);
-                                arr.push(0);
-                            } else {
-                                optGroup.appendChild(option);
-                                arr[arr.length - 1]++;
-                            }
-                        } else {
-                            arr.pop();
-                            tempObj.pop();
-                            arr[arr.length - 1]++;
-                        }
-                    }
-                } else {
-                    var option = document.createElement("option");
-                    option.text = testList[i].testName;
-                    option.value = testList[i].id;
-                    cateSel.appendChild(option);
+            var select = document.querySelector("#multi-select div.menu");
+            var caseArr = Object.keys(testList);
+            for (let i = 0; i < caseArr.length; i++) {
+                if (["30", "31"].indexOf(caseArr[i]) < 0) {
+                    var selection = document.createElement("div");
+                    selection.className = "item";
+                    selection.setAttribute("data-value", caseArr[i]);
+                    selection.textContent = testList[caseArr[i]];
+                    select.appendChild(selection);
                 }
             }
+            $('#multi-select').dropdown();
+            if (window.location.href.indexOf("?") > -1) {
+                //get UI set up for the URL parameters
+                var queryObj = getParamsToArray(window.location.href);
+                if (queryObj.requestType == "Date") {
+                    onDateRadio.checked = true;
+                    testDate.value = queryObj.reportDate;
+                } else if (queryObj.requestType == "Range") {
+                    if (queryObj.startDate != "null") {
+                        dateRangeRadio.checked = true;
+                        dateRange1.value = queryObj.startDate;
+                        dateRange2.value = queryObj.endDate;
+                        limitDateRange();
+                    } else {
+                        withinDaysRadio.checked = true;
+                        withinDays.selectedIndex = withinDays.childElementCount - 1;
+                    }
+                }
+                if (queryObj.hasOwnProperty("reportCategory")) {
+                    cateCheck.checked = true;
+                    onCateChange();
+                    $('#multi-select').dropdown("set selected", queryObj.reportCategory.split(","));
+                }
+                if (queryObj.reportDevext) {
+                    devChb.checked = true;
+                }
+                if (queryObj.reportQAext) {
+                    qaChb.checked = true;
+                }
+                if (queryObj.reportProduction) {
+                    proChb.checked = true;
+                }
+                handleXHR(queryObj);
+            }
+            onCateChange();
+            onDayChange();
         } else if (this.readyState == 4) {
             document.querySelector("#holderbox").innerHTML = this.responseText;
             document.querySelector("#reportList").innerHTML = this.responseText;
         }
     };
-    xmlHTTP.open("GET", "./getTestName");
+    xmlHTTP.open("GET", "./getIDRef");
     xmlHTTP.send();
+}
 
-    if (window.location.href.indexOf("?") > -1) {
-        //get UI set up for the URL parameters
-        var queryObj = getParamsToArray(window.location.href);
-        if (queryObj.requestType == "Date") {
-            onDateRadio.checked = true;
-            testDate.value = queryObj.reportDate;
-        } else if (queryObj.requestType == "Range") {
-            if (queryObj.startDate != "null") {
-                dateRangeRadio.checked = true;
-                dateRange1.value = queryObj.startDate;
-                dateRange2.value = queryObj.endDate;
-                limitDateRange();
-            } else {
-                withinDaysRadio.checked = true;
-                withinDays.selectedIndex = withinDays.childElementCount - 1;
-            }
-        }
-        if (queryObj.reportEnvir1) {
-            envir1Chb.checked = true;
-        }
-        if (queryObj.reportEnvir2) {
-            envir2Chb.checked = true;
-        }
-        if (queryObj.reportEnvir3) {
-            envir3Chb.checked = true;
-        }
-        handleXHR(queryObj);
-    }
+function restoreUI() {
 
-    onCateChange();
-    onDayChange();
-    if ($('#testDate')[0].type != 'date') {
-        $('#testDate').datepicker();
-        $('#dateRange1').datepicker();
-        $('#dateRange2').datepicker();
-    }
-    document.querySelector("body").addEventListener("click", function(e) {
-        if (e.target.tagName != "rect") {
-            document.querySelector("#testListTip").style.display = "none";
-        }
-    });
 }
 
 function requestReport() {
@@ -166,7 +147,7 @@ function requestReport() {
         }
     }
     if (cateCheck.checked) {
-        requestJSON.reportCategory = cateSel.value;
+        requestJSON.reportCategory = document.querySelector("#cateValue").value;
     }
     handleXHR(requestJSON);
     history.pushState(null, null, formatParams(requestJSON));
@@ -191,19 +172,6 @@ function handleXHR(requestParams) {
                 envir1Chb.checked = true;
             } else {
                 envir1Chb.checked = false;
-            }
-            if (requestParams.reportCategory !== undefined) {
-                for (var i = 0; i < cateSel.options.length; i++) {
-                    if (requestParams.reportCategory == cateSel.options[i].value) {
-                        cateSel.selectedIndex = i;
-                        cateCheck.checked = true;
-                        onCateChange();
-                        break;
-                    } else if (i == cateSel.childElementCount - 1) {
-                        cateCheck.checked = false;
-                        onCateChange();
-                    }
-                }
             }
         }
     });
@@ -270,7 +238,7 @@ function handleXHR(requestParams) {
 }
 
 function validateButton() {
-    if ((envir1Chb.checked || envir2Chb.checked || envir3Chb.checked) &&
+    if ((envir1Chb.checked || envir2Chb.checked || envir3Chb.checked) && (!cateCheck.checked || (cateCheck.checked && document.querySelector("#cateValue").value != "")) &&
         ((onDateRadio.checked && testDate.value !== "") ||
             (dateRangeRadio.checked && validateDate(dateRange1.value) && validateDate(dateRange2.value) && (new Date(dateRange1.value) <= new Date(dateRange2.value))) ||
             withinDaysRadio.checked)) {
@@ -904,10 +872,11 @@ function onDayChange() {
 
 function onCateChange() {
     if (cateCheck.checked) {
-        cateSel.disabled = false;
+        $('#multi-select').removeClass("disabled");
     } else {
-        cateSel.disabled = true;
+        $('#multi-select').addClass("disabled");
     }
+    validateButton();
 }
 
 function limitDateRange() {

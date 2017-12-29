@@ -8,9 +8,18 @@
     <script src="js/readReport.js"></script>
     <script src="js/d3.min.js"></script>
     <script src="js/jquery-mousewheel-min.js"></script>
+    <script src="js/dropdown.min.js"></script>
+    <script src="js/transition.min.js"></script>
+    <!-- <script src="js/semantic.min.js"></script> -->
+
     <link href="css/main.css" rel="stylesheet" />
     <link href="css/jquery-ui.min.css" rel="stylesheet" />
     <link href="css/Home.css" rel="stylesheet" />
+    <link href="css/dropdown.min.css" rel="stylesheet" />
+    <link href="css/icon.min.css" rel="stylesheet" />
+    <link href="css/transition.min.css" rel="stylesheet" />
+    <!-- <link href="css/semantic.min.css" rel="stylesheet" /> -->
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
 </head>
@@ -66,7 +75,12 @@
                                 <label>Search within a certain category: </label>
                             </td>
                             <td>
-                                <select name="caterogyList" id="caterogyList"></select>
+                                <div class="ui multiple search selection dropdown" id="multi-select">
+                                    <input name="testCases" type="hidden" id="cateValue" onchange="validateButton()">
+                                    <i class="dropdown icon"></i>
+                                    <div class="default text">Test Cases</div>
+                                    <div class="menu"></div>
+                                </div>
                             </td>
                         </tr>
                         <tr>
