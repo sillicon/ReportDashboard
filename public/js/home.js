@@ -787,6 +787,10 @@ function createCirclePack(jsonObj) {
                 d3.event.stopPropagation();
             } else if (!d.children && d.data.hasOwnProperty("cateName")) {
                 window.open(".\\report\\" + d.data.testName);
+            } else if (d.data.hasOwnProperty("loginURL")) {
+                window.open(d.data.loginURL);
+            } else if (d.data.hasOwnProperty("issueURL")) {
+                window.open(d.data.issueURL);
             };
         });
     var text = g.selectAll("text")
@@ -800,7 +804,13 @@ function createCirclePack(jsonObj) {
             return d.parent === jsonObj ? "inline" : "none";
         })
         .text(function(d) {
-            return d.data.testName;
+            if (d.data.hasOwnProperty("loginURL")) {
+                return "Click here to authorize GitHub access";
+            } else if (d.data.hasOwnProperty("loginURL")) {
+                return d.data.issueName;
+            } else {
+                return d.data.testName;
+            }
         });
     var node = g.selectAll("circle,text");
     svg.style("background", color(0))
@@ -918,6 +928,10 @@ function createSunburst(jsonObj) {
     function click(d) {
         if (!d.children && d.data.hasOwnProperty("cateName")) {
             window.open(".\\report\\" + d.data.testName);
+        } else if (d.data.hasOwnProperty("loginURL")) {
+            window.open(d.data.loginURL);
+        } else if (d.data.hasOwnProperty("issueURL")) {
+            window.open(d.data.issueURL);
         } else {
             svg.transition()
                 .duration(750)
@@ -945,12 +959,21 @@ function createSunburst(jsonObj) {
         var text = d3.select("#cateDescription").text(tempStr);
         wrap(text, width);
 
-
         function getParent(obj) {
-            if (obj.parent == null) {
-                return obj.data.testName;
+            var nameStr = "";
+            if (obj.data.hasOwnProperty("loginURL")) {
+                nameStr = "Click here to authorize GitHub access";
+                return nameStr;
+            } else if (obj.data.hasOwnProperty("loginURL")) {
+                nameStr = obj.data.issueName;
+            } else {
+                nameStr = obj.data.testName;
             }
-            return getParent(obj.parent) + ">" + obj.data.testName;
+            if (obj.parent == null) {
+                return nameStr;
+            } else {
+                return getParent(obj.parent) + ">" + nameStr;
+            }
         }
 
         function wrap(text, width) {
