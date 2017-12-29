@@ -806,7 +806,7 @@ function createCirclePack(jsonObj) {
         .text(function(d) {
             if (d.data.hasOwnProperty("loginURL")) {
                 return "Click here to authorize GitHub access";
-            } else if (d.data.hasOwnProperty("loginURL")) {
+            } else if (d.data.hasOwnProperty("issueURL")) {
                 return d.data.issueName;
             } else {
                 return d.data.testName;
