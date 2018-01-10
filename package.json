@@ -16,7 +16,7 @@
     "jstransformer": "^1.0.0",
     "mkdirp": "^0.5.1",
     "moment": "^2.20.1",
-    "mongodb": "^2.2.33",
+    "mongodb": "^2.2.34",
     "morgan": "~1.7.0",
     "passport": "^0.4.0",
     "passport-oauth2": "^1.4.0",
@@ -26,6 +26,6 @@
   },
   "devDependencies": {
     "grunt": "^1.0.1",
-    "grunt-contrib-uglify": "^3.2.1"
+    "grunt-contrib-uglify": "^3.3.0"
   }
 }

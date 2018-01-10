@@ -1,22 +1,23 @@
-﻿var express = require('express');
-var path = require('path');
-var fs = require('fs');
-var moment = require('moment');
-var router = express.Router();
+const express = require("express");
+const path = require("path");
+const fs = require("fs");
+const moment = require("moment");
+const ObjectID = require("mongodb").ObjectID;
+const router = express.Router();
 
 router.post("/uploadReport", function (req, res) {
     if (!req.body.hasOwnProperty("reportEnvi") || !req.body.hasOwnProperty("testID") || !req.body.hasOwnProperty("reportDate") || !req.body.hasOwnProperty("reportHTML") || !req.body.hasOwnProperty("reportResult")) {
         res.status(400).send("Bad Request. Missing important request parameter.");
     } else {
-        var db = req.app.get('dbConnection');
-        var collection = db.collection('reportResult');
+        var db = req.app.get("dbConnection");
+        var collection = db.collection("reportResult");
         var inputHTML = req.body.reportHTML;
         var dateWithTime = getNowTime(req.body.reportDate);
         if (req.body.hasOwnProperty("reportName")) {
             var fileName = req.body.reportName + dateWithTime + ".html";
             writeInData(fileName);
         } else {
-            var tempCol = db.collection('reportCategory');
+            var tempCol = db.collection("reportCategory");
             findTestName(tempCol, parseInt(req.body.testID), function (err, returnName) {
                 if (err) {
                     res.status(500).send("Database query failed!");
@@ -48,11 +49,11 @@ router.post("/uploadReport", function (req, res) {
             envirTested: req.body.reportEnvi,
             hiveTested: req.body.reportHive
         }
-        fs.closeSync(fs.openSync(reportFilePath, 'w'));
+        fs.closeSync(fs.openSync(reportFilePath, "w"));
         if (fileName.indexOf("SharingAPI") > -1) {
             inputHTML = "<body style='white-space: pre-wrap;'>" + inputHTML + "</body>";
         }
-        fs.writeFile(reportFilePath, inputHTML, 'utf8', function write(err) {
+        fs.writeFile(reportFilePath, inputHTML, "utf8", function write(err) {
             if (err) {
                 res.status(500).send("Write html into database failed!");
                 throw err;
@@ -65,6 +66,48 @@ router.post("/uploadReport", function (req, res) {
             })
         });
     }
+})
+
+router.post("/publishComment", function (req, res) {
+    var db = req.app.get("dbConnection");
+    var dataCol = db.collection("reportResult");
+    dataCol.find({
+        "_id": ObjectID(req.body._id)
+    }).toArray(function(err, docs) {
+        if (err) {
+            res.status(500).send("Database query failed!");
+        } else {
+            var doc = docs[0];
+            if (doc.hasOwnProperty("comments")) {
+                var comments = doc.comments;
+                comments.push({
+                    "commenter": req.body.commenter,
+                    "comment": req.body.commentText,
+                    "commentTime": new Date()
+                });
+                dataCol.update({
+                    "_id": ObjectID(req.body._id)
+                }, {
+                    "$set": {
+                        "comments": comments
+                    }
+                });
+            } else {
+                dataCol.update({
+                    "_id": ObjectID(req.body._id)
+                }, {
+                    "$set": {
+                        "comments": [{
+                            "commenter": req.body.commenter,
+                            "comment": req.body.commentText,
+                            "commentTime": new Date()
+                        }]
+                    }
+                });
+            }
+            res.status(200).send("Post comment complete.");
+        }
+    });
 })
 
 function findTestName(dbCol, inputID, cb) {
@@ -115,19 +158,19 @@ function getNowTime(str) {
     var min = currentTime.getMinutes();
     var ss = currentTime.getSeconds();
     if (dd < 10) {
-        dd = '0' + dd;
+        dd = "0" + dd;
     }
     if (mm < 10) {
-        mm = '0' + mm;
+        mm = "0" + mm;
     }
     if (hh < 10) {
-        hh = '0' + hh;
+        hh = "0" + hh;
     }
     if (min < 10) {
-        min = '0' + min;
+        min = "0" + min;
     }
     if (ss < 10) {
-        ss = '0' + ss;
+        ss = "0" + ss;
     }
     return mm + "_" + dd + "_" + yyyy + "_" + hh + "_" + min + "_" + ss;
 }

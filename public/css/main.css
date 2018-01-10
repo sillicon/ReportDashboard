@@ -104,6 +104,7 @@ select option:disabled {
     color: #FFF;
     padding: 3px 15px;
     float: right;
+    cursor: pointer;
 }
 
 .navigation:hover {
@@ -444,7 +445,7 @@ div.testListTip a {
 
 #multi-select input.search {
     margin: auto 5px auto 10px;
-    width: 20rem !important;
+    width: auto !important;
 }
 
 #multi-select div.default.text {

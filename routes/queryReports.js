@@ -1,15 +1,15 @@
-﻿var express = require('express');
-var path = require('path');
-var moment = require('moment');
-var router = express.Router();
+const express = require("express");
+const path = require("path");
+const moment = require("moment");
+const router = express.Router();
 
 router.get("/queryReports", function(req, res) { // new query with MongoDB
     if (!queryValidator(req.query)) {
         res.status(400).send("Missing query parameter!");
     } else {
-        var db = req.app.get('dbConnection');
+        var db = req.app.get("dbConnection");
         // Get the documents collection
-        var collection = db.collection('reportResult');
+        var collection = db.collection("reportResult");
         var queryObj = {
             $or: []
         };
@@ -43,7 +43,7 @@ router.get("/queryReports", function(req, res) { // new query with MongoDB
                     $eq: convertToUTC(req.query.reportDate)
                 };
             } else {
-                res.status(400).send('Bad Request, no date input.');
+                res.status(400).send("Bad Request, no date input.");
             }
         } else {
             if (req.query.startDate === "null") {
@@ -128,16 +128,14 @@ router.get("/queryReports", function(req, res) { // new query with MongoDB
 });
 
 router.get("/getLatestReports", function(req, res) {
-    var db = req.app.get('dbConnection');
+    var db = req.app.get("dbConnection");
     // Get the documents collection
-    var collection = db.collection('reportResult');
+    var collection = db.collection("reportResult");
     var queryObj = {
         envirTested: req.query.envir || null,
         testDate: convertToUTC(req.query.testDate)
     };
-    collection.find(queryObj).project({
-        _id: 0
-    }).toArray(function(err, docs) {
+    collection.find(queryObj).project({}).toArray(function(err, docs) {
         if (err) {
             console.log(err);
             res.status(500).send("Database query failed!");
@@ -174,9 +172,9 @@ router.get("/getLatestReports", function(req, res) {
 });
 
 router.get("/getIDRef", function(req, res) {
-    var db = req.app.get('dbConnection');
+    var db = req.app.get("dbConnection");
     // Get the documents collection
-    var collection = db.collection('reportCategory');
+    var collection = db.collection("reportCategory");
     getIDRef(collection, function(err, result) {
         if (err) {
             console.log(err);

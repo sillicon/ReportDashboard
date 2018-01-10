@@ -1,6 +1,6 @@
-var express = require('express');
+const express = require("express");
 // var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-var router = express.Router();
+const router = express.Router();
 
 // router.get("/getGitToken", function (req, res) {
 //     var xhr = new XMLHttpRequest();
@@ -21,6 +21,14 @@ var router = express.Router();
 router.get("/getGitToken", function (req, res) {
     if (req.user) {
         res.send(req.user.accessToken);
+    } else {
+        res.send(null);
+    }
+});
+
+router.get("/getGitUser", function (req, res) {
+    if (req.user) {
+        res.send(req.user);
     } else {
         res.send(null);
     }

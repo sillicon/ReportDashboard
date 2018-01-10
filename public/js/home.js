@@ -7,17 +7,6 @@ function pageLoad() {
         document.querySelector("#chooseDay").max = tempStr;
     }
     document.querySelector("#chooseDay").value = tempStr;
-    //preload image
-    var preImg = ["../images/tick.svg", "../images/cross.svg", "../images/question.svg", "../images/leftarrow.svg", "../images/info.svg"];
-    preloadImages(preImg);
-    var hash = window.location.hash.substr(1);
-    if (hash == "envir2") {
-        changeEnvir(document.querySelector("#envir2"));
-    } else if (hash == "envir3") {
-        changeEnvir(document.querySelector("#envir3"));
-    } else {
-        checkTestArea();
-    }
     //detect browsers
     // Opera 8.0+
     isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
@@ -40,6 +29,54 @@ function pageLoad() {
             document.querySelector("#reportList").style.display = "none";
         }
     });
+    //preload image
+    var preImg = ["./images/tick.svg", "./images/cross.svg", "./images/question.svg", "./images/leftarrow.svg", "./images/info.svg", "./images/github.svg", "./images/comment.svg"];
+    preloadImages(preImg);
+    //load user profile
+    var currentUser = JSON.parse(sessionStorage.getItem("user"));
+    var loginBox = document.querySelector("#loginGithub"),
+        img = document.querySelector("#headerGitLogo"),
+        label = document.querySelector("#loginLabel");
+    if (currentUser) {
+        preloadImages([currentUser.photos[0].value]);
+        img.src = currentUser.photos[0].value;
+        label.textContent = currentUser.username;
+        loginBox.addEventListener("click", function(e) {
+            location.href = currentUser.profileUrl;
+        });
+    } else {
+        img.src = "./images/github.svg";
+        label.textContent = "GitHub Login";
+        loginBox.addEventListener("click", function(e) {
+            location.href = "./login/github";
+        });
+        let getGitUser = new XMLHttpRequest();
+        getGitUser.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                let user = this.responseText;
+                if (user != "") {
+                    user = JSON.parse(user);
+                    img.src = user.photos[0].value;
+                    label.textContent = user.username;
+                    loginBox.addEventListener("click", function(e) {
+                        location.href = user.profileUrl;
+                    });
+                    sessionStorage.setItem("user", JSON.stringify(user));
+                }
+            }
+        }
+        getGitUser.open("GET", "./getGitUser");
+        getGitUser.send();
+    }
+
+    var hash = window.location.hash.substr(1);
+    if (hash == "envir2") {
+        changeEnvir(document.querySelector("#envir2"));
+    } else if (hash == "envir3") {
+        changeEnvir(document.querySelector("#envir3"));
+    } else {
+        checkTestArea();
+    }
 }
 
 function changeEnvir(element) {
@@ -173,7 +210,9 @@ function manageReports(resultList) {
                                 depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child.push({
                                     testName: resultList[i].fileName,
                                     testResult: resultList[i].testResult,
-                                    cateName: resultList[i].testName
+                                    cateName: resultList[i].testName,
+                                    uniqueID: resultList[i]._id,
+                                    comments: resultList[i].comments
                                 });
                                 if (i == resultList.length - 1 || resultList[i].testID != resultList[i + 1].testID) {
                                     depthObj[depthObj.length - 1].child[arr[arr.length - 1]].testResult = resultList[i].testResult;
@@ -1049,17 +1088,17 @@ function createOrdinary(jsonObj) {
         if (!obj.hasOwnProperty("loginURL") && !obj.hasOwnProperty("issueURL")) {
             var radioButton = document.createElement("img");
             if (["Test Category 4", "Test Area 30", "Test Area 31"].indexOf(obj.testName) > -1) {
-                radioButton.src = "../images/github.svg";
+                radioButton.src = "./images/github.svg";
             } else if (obj.hasOwnProperty("testResult")) {
                 if (obj.testResult === "Pass") {
                     div.style.backgroundColor = "#deffde";
-                    radioButton.src = "../images/tick.svg";
+                    radioButton.src = "./images/tick.svg";
                 } else {
                     div.style.backgroundColor = "#ffe7e7";
-                    radioButton.src = "../images/cross.svg";
+                    radioButton.src = "./images/cross.svg";
                 }
             } else {
-                radioButton.src = "../images/question.svg";
+                radioButton.src = "./images/question.svg";
             }
             var nameStr = document.createElement("div");
             nameStr.textContent = obj.testName;
@@ -1125,7 +1164,7 @@ function createOrdinary(jsonObj) {
             arrow.style.pointerEvents = "none";
             arrow.height = "25";
             arrow.width = "15";
-            arrow.src = "../images/leftarrow.svg";
+            arrow.src = "./images/leftarrow.svg";
             if (div.parentNode == document.querySelector("#contentPane")) {
                 arrow.className = "expanded";
             }
@@ -1148,17 +1187,110 @@ function createOrdinary(jsonObj) {
             }
         } else if (obj.hasOwnProperty("cateName")) {
             testName.onclick = function() {
-                window.open(".\\report\\" + obj.testName);
+                if (!(e.target.tagName === "IMG" && e.target.src.indexOf("comment.svg") > 0)) {
+                    window.open(".\\report\\" + obj.testName);
+                }
             }
             testName.style.height = "30px";
             var descrip = document.createElement("div");
             var tempCollect = obj.testName.substring(0, obj.testName.lastIndexOf(".")).match(/[a-zA-Z ]+|[0-9_]+/g)[1];
             var tempCol = tempCollect.split(/_/g);
-            tempCollect = "Test Date: " + tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2] + "\n" + "Upload Time: " + tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
-            descrip.textContent = tempCollect;
-            descrip.style.whiteSpace = "pre";
+            tempCollect = "Test Date: " + tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2] + "<br>" + "Upload Time: " + tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
+            descrip.innerHTML = tempCollect;
             descrip.style.margin = "auto auto 10px 30px";
             div.appendChild(descrip);
+            //create comment icon
+            let commentImg = document.createElement("img");
+            commentImg.height = "25";
+            commentImg.width = "20";
+            commentImg.style.cssFloat = "right";
+            commentImg.src = "./images/comment.svg";
+            commentImg.onclick = function(e) {
+                let parent = e.target.parentNode;
+                let commentSection = $(parent.nextElementSibling.nextElementSibling);
+                commentSection.transition({
+                    animation: "scale",
+                    duration: 300,
+                    interval: 30
+                });
+            }
+            testName.appendChild(commentImg);
+            //create comment section
+            let comments = document.createElement("div");
+            comments.id = "commentsHolder";
+            let commentTitle = document.createElement("div");
+            commentTitle.textContent = "Commnets";
+            commentTitle.style.fontWeight = "bold";
+            commentTitle.style.borderBottom = "1px solid #000000";
+            comments.appendChild(commentTitle);
+            if (obj.comments && obj.comments.length > 0) {
+                for (let i = 0; i < obj.comments.length; i++) {
+                    //create existing comment card
+                    createCommentCard(obj.comments[i], comments, "append");
+                }
+            } else {
+                let noComment = document.createElement("div");
+                noComment.className = "commentCard nocomment";
+                noComment.textContent = "No comment";
+                comments.appendChild(noComment);
+            }
+            let currentUser = JSON.parse(sessionStorage.getItem("user"));
+            let commentButton = document.createElement("div");
+            commentButton.className = "cardButton";
+            if (currentUser) {
+                commentButton.textContent = "Comment";
+                commentButton.className += " buttonDisabled";
+                let avatar = document.createElement("img");
+                avatar.src = currentUser.photos[0].value;
+                avatar.className = "avatar";
+                comments.appendChild(avatar);
+                let textBox = document.createElement("textarea");
+                textBox.placeholder = "Leave a comment";
+                textBox.maxLength = 255;
+                textBox.oninput = function (e) {
+                    if (e.target.value != "") {
+                        commentButton.className = "cardButton";
+                    } else {
+                        commentButton.className = "cardButton buttonDisabled";
+                    }
+                }
+                comments.appendChild(textBox);
+                commentButton.onclick = function(e) {
+                    e.target.className = "cardButton buttonDisabled";
+                    let requestJSON = {
+                        _id: obj.uniqueID,
+                        commenter: JSON.parse(sessionStorage.getItem("user")).displayName,
+                        commentText: e.target.previousElementSibling.value
+                    }
+                    let xmlHTTP = new XMLHttpRequest();
+                    xmlHTTP.open("POST", "./publishComment");
+                    xmlHTTP.setRequestHeader("Content-Type", "application/json");
+                    xmlHTTP.send(JSON.stringify(requestJSON));
+                    xmlHTTP.onreadystatechange = function () {
+                        if (this.readyState == 4 && this.status == 200) {
+                            let testEle = e.target.previousElementSibling.previousElementSibling.previousElementSibling;
+                            if (testEle.className === "commentCard nocomment") {
+                                $(testEle).remove();
+                            }
+                            let input = {
+                                commenter: requestJSON.commenter,
+                                commentTime: new Date().toLocaleString(),
+                                comment: requestJSON.commentText
+                            }
+                            createCommentCard(input, e.target.previousElementSibling.previousElementSibling, "insert");
+                            e.target.className = "cardButton";
+                        }
+                    }
+                }
+            } else {
+                commentButton.textContent = "Log in to comment";
+                commentButton.onclick = function() {
+                    location.href = "./login/github";
+                }
+            }
+            comments.appendChild(commentButton);
+            $(comments).transition("hide");
+            div.appendChild(comments);
         }
         if (obj.hasOwnProperty("id") && ["Test Area 30", "Test Area 31"].indexOf(obj.testName) < 0) {
             var infoButton = document.createElement("a");
@@ -1168,11 +1300,49 @@ function createOrdinary(jsonObj) {
             infoIcon.height = "25";
             infoIcon.width = "20";
             infoIcon.style.cssFloat = "right";
-            infoIcon.src = "../images/info.svg";
+            infoIcon.src = "./images/info.svg";
             infoButton.appendChild(infoIcon);
             testName.appendChild(infoButton);
         }
         return div;
+    }
+
+    function createCommentCard(input, targetElement, position) {
+        let existComment = document.createElement("div");
+        existComment.className = "commentCard";
+        let coAvatar = document.createElement("div");
+        let coName = document.createElement("label");
+        let coTimelabel = document.createElement("label");
+        let coText = document.createElement("div");
+        coAvatar.textContent = input.commenter.substring(0, 1).toUpperCase();
+        coAvatar.style.backgroundColor = "hsl(" + Math.abs(parseInt(hashCode(input.commenter.substr(-7)), 16) / 0xfffffff) + ", 50%, 70%)";
+        coAvatar.className = "coAvatar";
+        coName.textContent = input.commenter;
+        coName.className = "coName";
+        coTimelabel.textContent = new Date(input.commentTime).toLocaleString();
+        coTimelabel.className = "coTimelabel";
+        coText.textContent = input.comment;
+        coText.className = "coText";
+        existComment.appendChild(coAvatar);
+        existComment.appendChild(coName);
+        existComment.appendChild(coTimelabel);
+        existComment.appendChild(coText);
+        if (position === "append") {
+            targetElement.appendChild(existComment);
+        } else if (position === "insert") {
+            targetElement.parentNode.insertBefore(existComment, targetElement);
+        }
+    }
+
+    function hashCode(str) {
+        var hash = 0;
+        if (str.length == 0) return hash;
+        for (i = 0; i < str.length; i++) {
+            char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return hash;
     }
 }
 
