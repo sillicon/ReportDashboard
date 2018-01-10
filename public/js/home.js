@@ -1320,12 +1320,13 @@ function createOrdinary(jsonObj) {
         let coText = document.createElement("div");
         if (input.commenter != null) {
             coAvatar.textContent = input.commenter.substring(0, 1).toUpperCase();
+            coAvatar.style.backgroundColor = "hsl(" + Math.abs(parseInt(hashCode(input.commenter.substr(-7)), 16) / 0xfffffff) + ", 50%, 70%)";
             coName.textContent = input.commenter;;
         } else {
             coAvatar.textContent = "A";
             coName.textContent = "Anonymous";
+            coAvatar.style.backgroundColor = "hsl(" + Math.abs(parseInt(hashCode("Anonymous".substr(-7)), 16) / 0xfffffff) + ", 50%, 70%)";
         }
-        coAvatar.style.backgroundColor = "hsl(" + Math.abs(parseInt(hashCode(input.commenter.substr(-7)), 16) / 0xfffffff) + ", 50%, 70%)";
         coAvatar.className = "coAvatar";
         coName.className = "coName";
         coTimelabel.textContent = new Date(input.commentTime).toLocaleString();
