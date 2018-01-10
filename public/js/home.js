@@ -1257,9 +1257,13 @@ function createOrdinary(jsonObj) {
                 comments.appendChild(textBox);
                 commentButton.onclick = function(e) {
                     e.target.className = "cardButton buttonDisabled";
+                    let tempName = JSON.parse(sessionStorage.getItem("user")).displayName;
+                    if (tempName == null) {
+                        tempName = JSON.parse(sessionStorage.getItem("user")).username;;
+                    }
                     let requestJSON = {
                         _id: obj.uniqueID,
-                        commenter: JSON.parse(sessionStorage.getItem("user")).displayName,
+                        commenter: tempName,
                         commentText: e.target.previousElementSibling.value
                     }
                     let xmlHTTP = new XMLHttpRequest();
@@ -1314,10 +1318,15 @@ function createOrdinary(jsonObj) {
         let coName = document.createElement("label");
         let coTimelabel = document.createElement("label");
         let coText = document.createElement("div");
-        coAvatar.textContent = input.commenter.substring(0, 1).toUpperCase();
+        if (input.commenter != "") {
+            coAvatar.textContent = input.commenter.substring(0, 1).toUpperCase();
+            coName.textContent = input.commenter;;
+        } else {
+            coAvatar.textContent = "A";
+            coName.textContent = "Anonymous";
+        }
         coAvatar.style.backgroundColor = "hsl(" + Math.abs(parseInt(hashCode(input.commenter.substr(-7)), 16) / 0xfffffff) + ", 50%, 70%)";
         coAvatar.className = "coAvatar";
-        coName.textContent = input.commenter;
         coName.className = "coName";
         coTimelabel.textContent = new Date(input.commentTime).toLocaleString();
         coTimelabel.className = "coTimelabel";
