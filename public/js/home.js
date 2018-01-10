@@ -1318,7 +1318,7 @@ function createOrdinary(jsonObj) {
         let coName = document.createElement("label");
         let coTimelabel = document.createElement("label");
         let coText = document.createElement("div");
-        if (input.commenter != "") {
+        if (input.commenter != null) {
             coAvatar.textContent = input.commenter.substring(0, 1).toUpperCase();
             coName.textContent = input.commenter;;
         } else {
