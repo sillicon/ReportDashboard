@@ -1479,9 +1479,13 @@ function createOrdinary(jsonObj) {
                     comments.appendChild(textBox);
                     commentButton.onclick = function(e) {
                         e.target.className = "cardButton buttonDisabled";
+                        let tempName = JSON.parse(sessionStorage.getItem("user")).displayName;
+                        if (tempName == null) {
+                            tempName = JSON.parse(sessionStorage.getItem("user")).username;;
+                        }
                         let requestJSON = {
                             _id: obj.uniqueID,
-                            commenter: JSON.parse(sessionStorage.getItem("user")).displayName,
+                            commenter: tempName,
                             commentText: e.target.previousElementSibling.value
                         }
                         let xmlHTTP = new XMLHttpRequest();
