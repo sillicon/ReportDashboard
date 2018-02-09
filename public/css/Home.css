@@ -184,7 +184,8 @@ body {
         display: block;
     }
     #buttonGroup1,
-    #buttonGroup2 {
+    #buttonGroup2,
+    #buttonGroup3 {
         margin: 3px !important;
         float: none !important;
         text-align: center !important;
@@ -314,12 +315,18 @@ body {
 }
 
 #buttonGroup2 {
+    float: left;
+    margin: 5px auto 5px auto;
+}
+
+#buttonGroup3 {
     float: right;
     margin: 5px auto 5px auto;
 }
 
 #buttonGroup1 div,
-#buttonGroup2 div {
+#buttonGroup2 div,
+#buttonGroup3 div {
     background-color: rgb(255, 255, 255);
     border: 1px solid #11a1f5;
     color: rgb(0, 0, 0);
@@ -327,42 +334,49 @@ body {
     cursor: pointer;
 }
 
-#buttonGroup1 div:nth-child(1) {
+#buttonGroup1 div {
     float: left;
-    border-radius: 5px 0 0 5px;
-}
-
-#buttonGroup1 div:nth-child(2) {
-    float: left;
-    border-left: none;
-    border-radius: 0 5px 5px 0;
+    border-radius: 5px;
 }
 
 #buttonGroup2 div:nth-child(1) {
-    float: right;
-    border-left: 0;
+    float: left;
+    border-right: none;
+    border-radius: 5px 0 0 5px;
+}
+
+#buttonGroup2 div:nth-child(2) {
+    float: left;
     border-radius: 0 5px 5px 0;
 }
 
-#buttonGroup2 div:nth-child(2),
-#buttonGroup2 div:nth-child(3),
-#buttonGroup2 div:nth-child(4) {
+#buttonGroup3 div:nth-child(1) {
     float: right;
-    border-left: 0;
+    border-radius: 0 5px 5px 0;
 }
 
-#buttonGroup2 div:nth-child(5) {
+#buttonGroup3 div:nth-child(2),
+#buttonGroup3 div:nth-child(3),
+#buttonGroup3 div:nth-child(4) {
     float: right;
+    border-right: none;
+}
+
+#buttonGroup3 div:nth-child(5) {
+    float: right;
+    border-right: 0;
     border-radius: 5px 0 0 5px;
 }
 
 #buttonGroup1 div:hover,
-#buttonGroup2 div:hover {
+#buttonGroup2 div:hover,
+#buttonGroup3 div:hover {
     background-color: #ace1ff;
 }
 
 #buttonGroup1 .buttonSelected,
-#buttonGroup2 .buttonSelected {
+#buttonGroup2 .buttonSelected,
+#buttonGroup3 .buttonSelected {
     box-shadow: inset 1px 2px 2px rgba(0, 0, 0, 0.2);
 }
 
@@ -446,7 +460,7 @@ body {
     }
 }
 
-#contentPane div a {
+#contentPane div.areaCard a {
     text-decoration: none;
 }
 
@@ -486,38 +500,6 @@ body {
     fill: #a1a1a1;
 }
 
-
-/*loading img*/
-
-.loader {
-    margin: 50px auto;
-    border: 10px solid #f3f3f3;
-    border-radius: 50%;
-    border-top: 10px solid #0079c1;
-    width: 100px;
-    height: 100px;
-    -webkit-animation: spin 1s linear infinite;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-@-webkit-keyframes spin {
-    0% {
-        -webkit-transform: rotate(0deg);
-    }
-    100% {
-        -webkit-transform: rotate(360deg);
-    }
-}
-
 div.testListTip {
     font: 15px "AvenirNextLTPro-Regular";
     position: absolute;
@@ -546,6 +528,36 @@ div.testListTip a {
     text-decoration: none;
     color: white;
     line-height: 1.4rem;
+}
+
+#modal {
+    text-align: center;
+    background-color: #586069;
+}
+
+#modal .gaugeBlock {
+    margin: 20px 40px 20px 40px;
+    display: inline-block;
+    width: 180px;
+}
+
+#modal .gaugeBlock div.gaugeDesc{
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    height: 35px;
+    color: white;
+}
+
+#modal .gaugeBlock div.gaugeInfo{
+    margin-bottom: 20px;
+    font-size: 1rem;
+    color: white;
+}
+
+#modal svg.gauge {
+    height: 170px;
+    width: 170px;
 }
 
 
@@ -629,53 +641,141 @@ div.testListTip a {
 
 /* Ordinary View*/
 
+.cardHolder {
+    border-left: 1px solid #ddd;
+    margin: .5rem 0 .5rem 2rem;
+    padding: 0;
+}
+
 .ordinaryCard {
-    padding: 10px 20px 10px 20px;
-    box-shadow: 2px 3px 5px 3px #c1c1c1;
+    position: relative;
+    margin-bottom: 7px;
+    text-align: left;
+}
+
+.ordinaryCard:first-child:before {
+    content: "";
+    display: block;
+    position: absolute;
+    background-color: #ffffff;
+    top: 0;
+    left: -1px;
+    width: 2px;
+    height: 30px;
+}
+
+.ordinaryCard:last-child:before {
+    content: "";
+    display: block;
+    position: absolute;
+    background-color: #ffffff;
+    top: 40px;
+    left: -1px;
+    width: 2px;
+    height: 100%;
+}
+
+.ordinaryCard:only-child:before {
+    content: "";
+    display: block;
+    position: absolute;
+    background-color: #ffffff;
+    top: 0;
+    left: -1px;
+    width: 2px;
+    height: 100%;
+}
+
+.ordinaryCard button {
+    position: absolute;
+    left: -16px;
+    top: 9px;
+    background-color: white;
+    border-radius: 16px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding: 3px;
+    outline: none;
+    margin: 7px 10px 10px 0;
+    width: 32px;
+    height: 32px;
+}
+
+.ordinaryCard button.haschild{
+    cursor: pointer;
+}
+
+.ordinaryCard button.haschild:hover
+ {
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1), 0 0 16px 0 rgba(19, 19, 19, 0.05);
+}
+
+.ordinaryCard button svg {
+    fill: #828282;
+    width: 16px;
+    height: 16px;
+}
+
+.ordinaryCard .nameCard {
+    background-color: white;
+    border-radius: 3px;
+    border: 1px solid #a1a1a1;
+    position: relative;
+    display: block;
+    margin: 0 1.5rem;
+    padding-top: 9px;
     overflow: hidden;
-    /* -webkit-animation: fadein 0.5s;
-    -moz-animation: fadein 0.5s;
-    -o-animation: fadein 0.5s;
-    animation: fadein 0.5s; */
 }
 
-.ordinaryCard:hover {
-    box-shadow: 2px 3px 9px 3px #a0a0a0;
-}
-
-.ordinaryCard.toggled {
-    display: none;
-}
-
-.ordinaryCard .fieldTitle div {
+.ordinaryCard .nameCard .fieldTitle {
     /* margin: 0 20px 0 20px; */
-    padding: 0 10px 0 10px;
+    padding: 0 5px 0 30px;
 }
 
-.ordinaryCard .expanded {
-    -webkit-transform: rotate(-90deg);
-    transform: rotate(-90deg);
+.ordinaryCard .nameCard .fieldTitle .icon:hover{
+    border-bottom: 2px solid transparent;
+    border-bottom-color: #0079c1;
 }
 
-.ordinaryCard .fieldTitle.login a{
+.ordinaryCard .nameCard.login a{
     font-size: 16px;
-}
-
-.ordinaryCard .fieldTitle.issueTitle {
-    margin: 10px 0 0 0;
     display: inline-block;
+    margin: 11px auto 21px 30px;
 }
 
-.ordinaryCard .fieldTitle a.issueName {
+.ordinaryCard .nameCard.issueTitle {
+    overflow: hidden;
+    padding-left: 20px;
+}
+
+.ordinaryCard .nameCard a.issueName {
     color: rgb(36, 41, 46);
     font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
     font-size: 16px;
     font-weight: 600;
     line-height: 1.25;
+    text-decoration: none;
 }
 
-.ordinaryCard .fieldTitle a.issueName:hover {
+.ordinaryCard .nameCard a.issueName:hover {
     color: rgb(3, 102, 214);
+}
+
+.ordinaryCard .nameCard .commentExpand {
+    background-color: #9fd7ff;
+}
+
+.ordinaryCard .nameCard .coNum {
+    float: right;
+    font-size: 15px;
+    margin-top: 2px;
+    margin-right: 5px;
+    border-radius: 15px;
+    background-color: #fda522;
+    color: white;
+    min-width: 19px;
+    text-align: center;
 }
 
 .ordinaryCard div.label {
@@ -701,6 +801,11 @@ div.testListTip a {
     margin: 0 0 10px 0;
 }
 
+.ordinaryCard .commentsHolder {
+    margin: 10px 30px 10px 30px;
+    overflow: hidden;
+}
+
 .ordinaryCard .commentCard {
     margin: 10px 30px 10px 30px;
     border-bottom: 1px solid transparent;
@@ -710,6 +815,7 @@ div.testListTip a {
 .ordinaryCard .commentCard.nocomment {
     font-size: 1rem;
     color: rgb(131, 131, 131);
+    padding-bottom: 15px;
 }
 
 .ordinaryCard .commentCard .coAvatar{
@@ -765,6 +871,7 @@ div.testListTip a {
 }
 
 .ordinaryCard textarea {
+    font-family: AvenirNextLTPro-Regular;
     float: left;
     width: calc(100% - 100px);
     min-width: calc(100% - 100px);
@@ -772,6 +879,73 @@ div.testListTip a {
     height: 45px;
     min-height: 40px;
     margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+#editModal .header,
+#deleteModal .header {
+    padding: 10px 20px;
+}
+
+#editModal .content,
+#deleteModal .content {
+    width: auto;
+}
+
+#editModal .actions,
+#deleteModal .actions {
+    display: inline-block;
+    padding: 0;
+    width: 100%;
+    height: 40px;
+}
+
+#editModal .ok, #editModal .cancel,
+#deleteModal .cancel, #deleteModal .delete {
+    border: 1px solid #0079c1;
+    margin: 10px 5px;
+    padding: 3px 15px;
+    float: right;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+#editModal .ok {
+    background-color: #0079c1;
+    color: #FFF;
+}
+
+#editModal .ok:hover {
+    background-color: #005e95;
+}
+
+#editModal .cancel,
+#deleteModal .cancel {
+    background-color: #FFF;
+    color: #0079c1;
+}
+
+#editModal .cancel:hover,
+#deleteModal .cancel:hover  {
+    background-color: #005e95;
+    color: #FFF;
+}
+
+#warnModal .content,
+#deleteModal .content {
+    width: calc(100% - 30px);
+    padding: 30px 0px 30px 30px;
+}
+
+#deleteModal .delete {
+    background-color: #de2900;
+    border-color: #de2900;
+    color: white;
+}
+
+#deleteModal .delete:hover {
+    background-color: #ab3c16;
+    border-color: #ab3c16;
 }
 
 /* Treemap View*/

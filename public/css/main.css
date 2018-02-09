@@ -95,6 +95,15 @@ select option:disabled {
     background-color: white;
 }
 
+#fileDesc {
+    margin: auto 5px auto 5px;
+    max-width: 500px;
+    min-width: 300px;
+    font-size: 1.2rem;
+    min-height: 50px;
+    font-family: 'AvenirNextLTPro-Regular';
+}
+
 .navigation {
     font-family: 'AvenirNextLTPro-Regular';
     font-size: 20px;

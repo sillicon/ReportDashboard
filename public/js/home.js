@@ -1,21 +1,23 @@
 function pageLoad() {
     var tempStr = getTodayDate();
-    if ($('#chooseDay')[0].type != 'date') {
-        $('#chooseDay').datepicker();
+    if ($("#chooseDay")[0].type != "date") {
+        $("#chooseDay").datepicker();
         $("#chooseDay").datepicker("option", "maxDate", new Date());
     } else {
         document.querySelector("#chooseDay").max = tempStr;
     }
     document.querySelector("#chooseDay").value = tempStr;
+    document.querySelector("#chooseDay").title = "Click to change date";
+
     //detect browsers
     // Opera 8.0+
-    isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+    isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(" OPR/") >= 0;
     // Firefox 1.0+
-    isFirefox = typeof InstallTrigger !== 'undefined';
+    isFirefox = typeof InstallTrigger !== "undefined";
     // Safari 3.0+ "[object HTMLElementConstructor]" 
     isSafari = /constructor/i.test(window.HTMLElement) || (function(p) {
         return p.toString() === "[object SafariRemoteNotification]";
-    })(!window['safari'] || safari.pushNotification);
+    })(!window["safari"] || safari.pushNotification);
     // Internet Explorer 6-11
     isIE = /*@cc_on!@*/ false || !!document.documentMode;
     // Edge 20+
@@ -24,15 +26,39 @@ function pageLoad() {
     isChrome = !!window.chrome && !!window.chrome.webstore;
     // Blink engine detection
     isBlink = (isChrome || isOpera) && !!window.CSS;
+
+    //bind click events
     document.querySelector("body").addEventListener("click", function(e) {
         if (e.target.tagName != "path") {
             document.querySelector("#reportList").style.display = "none";
         }
     });
+    let tempElements = document.querySelectorAll("#contentNavi a");
+    for (let i = 0; i < tempElements.length; i++) {
+        tempElements[i].addEventListener("click", function(e) {
+            changeEnvir(e.target);
+        });
+    }
+    tempElements = document.querySelectorAll("#buttonGroup2 div,#buttonGroup3 div");
+    for (let i = 0; i < tempElements.length; i++) {
+        tempElements[i].addEventListener("click", function(e) {
+            changeView(e.target);
+        });
+    }
+    document.querySelector("#summary").addEventListener("click", function() {
+        getSummary();
+    });
+    document.querySelector("#exportSVG").addEventListener("click", function() {
+        exportSVG();
+    });
+    document.querySelector("#chooseDay").addEventListener("change", function() {
+        checkTestArea();
+    });
+
     //preload image
-    var preImg = ["./images/tick.svg", "./images/cross.svg", "./images/question.svg", "./images/leftarrow.svg", "./images/info.svg", "./images/github.svg", "./images/comment.svg"];
+    var preImg = ["./images/tick.svg", "./images/cross.svg", "./images/question.svg", "./images/leftarrow.svg", "./images/info.svg"];
     preloadImages(preImg);
-    //load user profile
+
     var currentUser = JSON.parse(sessionStorage.getItem("user"));
     var loginBox = document.querySelector("#loginGithub"),
         img = document.querySelector("#headerGitLogo"),
@@ -68,7 +94,7 @@ function pageLoad() {
         getGitUser.open("GET", "./getGitUser");
         getGitUser.send();
     }
-
+    
     var hash = window.location.hash.substr(1);
     if (hash == "envir2") {
         changeEnvir(document.querySelector("#envir2"));
@@ -89,12 +115,12 @@ function changeEnvir(element) {
 function changeView(element) {
     if (element.id == "cardView") {
         document.querySelector("#categoryView").setAttribute("class", "");
-        document.querySelector("#buttonGroup2").style.display = "none";
+        document.querySelector("#buttonGroup3").style.display = "none";
     } else if (element.id == "categoryView") {
         document.querySelector("#cardView").setAttribute("class", "");
-        document.querySelector("#buttonGroup2").style.display = "inline-block";
+        document.querySelector("#buttonGroup3").style.display = "inline-block";
     } else {
-        document.querySelector("#buttonGroup2 .buttonSelected").setAttribute("class", "");
+        document.querySelector("#buttonGroup3 .buttonSelected").setAttribute("class", "");
     }
     element.setAttribute("class", "buttonSelected");
     checkTestArea();
@@ -167,7 +193,7 @@ function checkTestArea() {
     }
     xmlHTTP.open("GET", "./getLatestReports" + formatParams(requestParams));
     xmlHTTP.send();
-    document.querySelector("#contentPane").innerHTML = "<div id =\"loader\" class=\"loader\"></div>";
+    document.querySelector("#contentPane").innerHTML = "<div class=\"ui segment\"><div class=\"ui active inverted dimmer\"><div class=\"ui large text loader\">Loading</div></div><p></p><p></p><p></p></div>";
 }
 
 function manageReports(resultList) {
@@ -193,31 +219,30 @@ function manageReports(resultList) {
                             if (!depthObj[depthObj.length - 1].child[arr[arr.length - 1]].hasOwnProperty("child")) {
                                 depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child = [];
                             }
+                            let insertObj = {};
                             if (resultList[i].hasOwnProperty("loginURL")) {
-                                depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child.push({
-                                    loginURL: resultList[i].loginURL
-                                });
+                                insertObj.loginURL = resultList[i].loginURL;
                             } else if (resultList[i].hasOwnProperty("issueURL")) {
-                                depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child.push({
-                                    issueURL: resultList[i].issueURL,
-                                    issueName: resultList[i].issueName,
-                                    labels: resultList[i].labels,
-                                    milestone: resultList[i].milestone,
-                                    author: resultList[i].author,
-                                    assignees: resultList[i].assignees
-                                });
+                                insertObj.issueURL = resultList[i].issueURL;
+                                insertObj.issueName = resultList[i].issueName;
+                                insertObj.labels = resultList[i].labels;
+                                insertObj.milestone = resultList[i].milestone;
+                                insertObj.author = resultList[i].author;
+                                insertObj.assignees = resultList[i].assignees;
                             } else {
-                                depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child.push({
-                                    testName: resultList[i].fileName,
-                                    testResult: resultList[i].testResult,
-                                    cateName: resultList[i].testName,
-                                    uniqueID: resultList[i]._id,
-                                    comments: resultList[i].comments
-                                });
+                                insertObj.testName = resultList[i].fileName;
+                                insertObj.testResult = resultList[i].testResult;
+                                insertObj.cateName = resultList[i].testName;
+                                insertObj.uniqueID = resultList[i]._id;
+                                insertObj.comments = resultList[i].comments;
+                                if (resultList[i].hasOwnProperty("reportURL")) {
+                                    insertObj.reportURL = resultList[i].reportURL;
+                                }
                                 if (i == resultList.length - 1 || resultList[i].testID != resultList[i + 1].testID) {
                                     depthObj[depthObj.length - 1].child[arr[arr.length - 1]].testResult = resultList[i].testResult;
                                 }
                             }
+                            depthObj[depthObj.length - 1].child[arr[arr.length - 1]].child.push(insertObj);
                             if (i < resultList.length - 1) {
                                 found = true;
                             } else {
@@ -240,7 +265,7 @@ function manageReports(resultList) {
                 }
             }
             document.querySelector("#contentPane").innerHTML = "";
-            var selButton = document.querySelector("#buttonGroup2 .buttonSelected");
+            var selButton = document.querySelector("#buttonGroup3 .buttonSelected");
             if (selButton.id == "sunburstView") {
                 createSunburst(tempObj);
             } else if (selButton.id == "circlePackView") {
@@ -361,24 +386,32 @@ function createCard(passCount, resultGroup, testField) {
                 var temp = [];
                 for (var i = 0; i < resultGroup.length; i++) {
                     if (resultGroup[i].testResult == "Pass") {
-                        temp.push(resultGroup[i].fileName);
+                        if (resultGroup[i].hasOwnProperty("reportURL")) {
+                            temp.push(resultGroup[i].reportURL);
+                        } else {
+                            temp.push(resultGroup[i].fileName);
+                        }
                     }
                 }
                 return [temp];
-            }).append('path')
-            .attr('class', 'successArc')
-            .attr('transform', 'translate(' + (width / 2 + margin.left) + ',' + (height / 2 + margin.top) + ')');
+            }).append("path")
+            .attr("class", "successArc")
+            .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top) + ")");
         var failArc = svg.data(function() {
                 var temp = [];
                 for (var i = 0; i < resultGroup.length; i++) {
                     if (resultGroup[i].testResult == "Fail") {
-                        temp.push(resultGroup[i].fileName);
+                        if (resultGroup[i].hasOwnProperty("reportURL")) {
+                            temp.push(resultGroup[i].reportURL);
+                        } else {
+                            temp.push(resultGroup[i].fileName);
+                        }
                     }
                 }
                 return [temp];
-            }).append('path')
-            .attr('class', 'failArc')
-            .attr('transform', 'translate(' + (width / 2 + margin.left) + ',' + (height / 2 + margin.top) + ')');
+            }).append("path")
+            .attr("class", "failArc")
+            .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top) + ")");
         var arc1 = d3.arc()
             .innerRadius(width / 2 - 30)
             .outerRadius(width / 2)
@@ -392,21 +425,21 @@ function createCard(passCount, resultGroup, testField) {
         var timer = setInterval(function() {
             if (temp1 < percent * 100) {
                 arc1.endAngle(-Math.PI * 3 / 4 + temp1 / 100 * Math.PI * 3 / 2);
-                successArc.attr('d', arc1);
+                successArc.attr("d", arc1);
                 temp1++;
             } else if (temp1 >= percent * 100 && temp2 == 0) {
                 arc1.endAngle(-Math.PI * 3 / 4 + percent * Math.PI * 3 / 2);
-                successArc.attr('d', arc1);
+                successArc.attr("d", arc1);
                 arc2.endAngle(-Math.PI * 3 / 4 + (percent + temp2 / 100) * Math.PI * 3 / 2);
-                failArc.attr('d', arc2);
+                failArc.attr("d", arc2);
                 temp2++;
             } else if (temp1 + temp2 < 100) {
                 arc2.endAngle(-Math.PI * 3 / 4 + (percent + temp2 / 100) * Math.PI * 3 / 2);
-                failArc.attr('d', arc2);
+                failArc.attr("d", arc2);
                 temp2++;
             } else if (temp1 + temp2 == 100) {
                 arc2.endAngle(Math.PI * 3 / 4);
-                failArc.attr('d', arc2);
+                failArc.attr("d", arc2);
                 clearInterval(timer);
             }
         }, 10);
@@ -421,9 +454,9 @@ function createCard(passCount, resultGroup, testField) {
             .text("Not Run");
         var strWidth = percentText.node().getComputedTextLength();
         percentText.attr("x", svgWidth / 2 - strWidth / 2);
-        var noneArc = svg.append('path')
-            .attr('class', 'noneArc')
-            .attr('transform', 'translate(' + (width / 2 + margin.left) + ',' + (height / 2 + margin.top) + ')');
+        var noneArc = svg.append("path")
+            .attr("class", "noneArc")
+            .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top) + ")");
         var arc = d3.arc()
             .innerRadius(width / 2 - 30)
             .outerRadius(width / 2)
@@ -433,11 +466,11 @@ function createCard(passCount, resultGroup, testField) {
         var timer = setInterval(function() {
             if (temp < 100) {
                 arc.endAngle(-Math.PI * 3 / 4 + temp / 100 * Math.PI * 3 / 2);
-                noneArc.attr('d', arc);
+                noneArc.attr("d", arc);
                 temp++;
             } else {
                 arc.endAngle(Math.PI * 3 / 4);
-                noneArc.attr('d', arc);
+                noneArc.attr("d", arc);
                 clearInterval(timer);
             }
         }, 10);
@@ -451,10 +484,10 @@ function createCard(passCount, resultGroup, testField) {
     function bindMouseBehavior(arcElement, arc) {
         arcElement.on("mouseover", function() {
             arc.outerRadius(width / 2 + 5);
-            arcElement.attr('d', arc);
+            arcElement.attr("d", arc);
         }).on("mouseout", function() {
             arc.outerRadius(width / 2);
-            arcElement.attr('d', arc);
+            arcElement.attr("d", arc);
         }).on("click", function(d) {
             var div = d3.select("#reportList");
             var tempScg = svg._groups[0][0];
@@ -462,7 +495,11 @@ function createCard(passCount, resultGroup, testField) {
             div.html(function() {
                 var tempHTML = "";
                 for (var i = 0; i < d.length; i++) {
-                    tempHTML += "<span><a href='.\\report\\" + d[i] + "' target='_blank'>" + d[i] + "</a></span><br>";
+                    if (d[i].indexOf("http") > -1) {
+                        tempHTML += "<span><a href='" + d[i] + "' target='_blank'>Click here for report</a></span><br>";
+                    } else {
+                        tempHTML += "<span><a href='.\\report\\" + d[i] + "' target='_blank'>" + d[i] + "</a></span><br>";
+                    }
                 }
                 return tempHTML;
             });
@@ -633,9 +670,9 @@ function createCollapseTree(jsonObj) {
             .on("click", click);
 
         // Add Circle for the nodes
-        nodeEnter.append('circle')
-            .attr('class', 'treeNode')
-            .attr('r', 1e-6)
+        nodeEnter.append("circle")
+            .attr("class", "treeNode")
+            .attr("r", 1e-6)
             .style("fill", function(d) {
                 if (d.data.testResult == undefined) {
                     return d.children || d._children ? "lightsteelblue" : "#a1a1a1";
@@ -647,7 +684,7 @@ function createCollapseTree(jsonObj) {
             });
 
         // Add labels for the nodes
-        nodeEnter.append('text')
+        nodeEnter.append("text")
             .attr("dy", ".35em")
             .attr("x", function(d) {
                 return d.children || d._children ? -13 : 13;
@@ -655,7 +692,7 @@ function createCollapseTree(jsonObj) {
             .attr("text-anchor", function(d) {
                 return d.children || d._children ? "end" : "start";
             })
-            .attr('cursor', 'pointer')
+            .attr("cursor", "pointer")
             .text(function(d) {
                 if (d.data.hasOwnProperty("loginURL")) {
                     return "Click here to authorize GitHub access";
@@ -668,7 +705,11 @@ function createCollapseTree(jsonObj) {
             })
             .on("click", function(d) {
                 if (d.data.hasOwnProperty("cateName")) {
-                    window.open(".\\report\\" + d.data.testName);
+                    if (d.data.hasOwnProperty("reportURL")) {
+                        window.open(d.data.reportURL);
+                    } else {
+                        window.open(".\\report\\" + d.data.testName);
+                    }
                 } else if (d.data.hasOwnProperty("loginURL")) {
                     window.open(".\\login\\github");
                 } else if (d.data.hasOwnProperty("issueURL")) {
@@ -687,9 +728,9 @@ function createCollapseTree(jsonObj) {
             });
 
         // Update the node attributes and style
-        nodeUpdate.select('circle.treeNode')
-            .attr('r', 10)
-            .attr('cursor', 'pointer');
+        nodeUpdate.select("circle.treeNode")
+            .attr("r", 10)
+            .attr("cursor", "pointer");
 
         // Transition exiting nodes to the parent's new position.
         var nodeExit = node.exit().transition()
@@ -712,9 +753,9 @@ function createCollapseTree(jsonObj) {
             });
 
         // Enter any new links at the parent's previous position.
-        var linkEnter = link.enter().insert('path', "g")
+        var linkEnter = link.enter().insert("path", "g")
             .attr("class", "treeLink")
-            .attr('d', function(d) {
+            .attr("d", function(d) {
                 var o = {
                     x: source.x0,
                     y: source.y0
@@ -728,14 +769,14 @@ function createCollapseTree(jsonObj) {
         // Transition back to the parent element position
         linkUpdate.transition()
             .duration(duration)
-            .attr('d', function(d) {
+            .attr("d", function(d) {
                 return diagonal(d, d.parent)
             });
 
         // Remove any exiting links
         var linkExit = link.exit().transition()
             .duration(duration)
-            .attr('d', function(d) {
+            .attr("d", function(d) {
                 var o = {
                     x: source.x,
                     y: source.y
@@ -825,7 +866,11 @@ function createCirclePack(jsonObj) {
                 zoom(d);
                 d3.event.stopPropagation();
             } else if (!d.children && d.data.hasOwnProperty("cateName")) {
-                window.open(".\\report\\" + d.data.testName);
+                if (d.data.hasOwnProperty("reportURL")) {
+                    window.open(d.data.reportURL);
+                } else {
+                    window.open(".\\report\\" + d.data.testName);
+                }
             } else if (d.data.hasOwnProperty("loginURL")) {
                 window.open(d.data.loginURL);
             } else if (d.data.hasOwnProperty("issueURL")) {
@@ -847,6 +892,8 @@ function createCirclePack(jsonObj) {
                 return "Click here to authorize GitHub access";
             } else if (d.data.hasOwnProperty("issueURL")) {
                 return d.data.issueName;
+            } else if (d.data.hasOwnProperty("reportURL")) {
+                return d.data.reportURL;
             } else {
                 return d.data.testName;
             }
@@ -966,7 +1013,11 @@ function createSunburst(jsonObj) {
 
     function click(d) {
         if (!d.children && d.data.hasOwnProperty("cateName")) {
-            window.open(".\\report\\" + d.data.testName);
+            if (d.data.hasOwnProperty("reportURL")) {
+                window.open(d.data.reportURL);
+            } else {
+                window.open(".\\report\\" + d.data.testName);
+            }
         } else if (d.data.hasOwnProperty("loginURL")) {
             window.open(d.data.loginURL);
         } else if (d.data.hasOwnProperty("issueURL")) {
@@ -1073,78 +1124,435 @@ function createOrdinary(jsonObj) {
     }
 
     function makeDiv(obj, parentNode) {
-        var div = document.createElement("div");
+        let div = document.createElement("div");
+        let radioButton = document.createElement("button");
+        let nameCard = document.createElement("div");
+        let returnDiv = document.createElement("div");
+        let plusSVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 8 16 16\" class=\"plus\"><path d=\"M15 17H9v6H7v-6H1v-2h6V9h2v6h6v2z\"></path></svg>";
+        let minusSVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 8 16 16\" class=\"minus\"><path d=\"M15 17H1v-2h14v2z\"></path></svg>";
+        let dotSVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 8 16 16\" class=\"dot\"><circle cx=\"8\" cy=\"16\" r=\"4\"></circle></svg>";
+        let reportSVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" class=\"report\"><path d=\"M22 24h4v2h-4v-2zm0-12h4v2h-4v-2zm0 4h4v2h-4v-2zM8 6h10v2H8V6zm14 14h4v2h-4v-2zM8 12h10v2H8v-2zm0 4h12v2H8v-2zM22.801 0H4v32h26V7.199L22.801 0zM28 30H6V2h14v8h8v20zm0-22h-6V2h.621L28 7.379V8zM8 20h12v2H8v-2zm0 4h10v2H8v-2z\"/></svg>";
+        let nameStr;
+
         parentNode.appendChild(div);
-        div.className = ("ordinaryCard");
-        if (div.parentNode != document.querySelector("#contentPane") && div.parentNode != document.querySelector("#contentPane > div")) {
-            div.className += " toggled";
+        div.className = "ordinaryCard";
+        if (parentNode != document.querySelector("#contentPane") && parentNode.parentNode != document.querySelector("#contentPane > div")) {
+            div.style.display = "none";
         }
         div.style.textAlign = "left";
-        var testName = document.createElement("div");
-        div.appendChild(testName);
-        testName.className = "fieldTitle";
-        testName.style.cursor = "pointer";
-        div.style.backgroundColor = "#fafafa";
-        if (!obj.hasOwnProperty("loginURL") && !obj.hasOwnProperty("issueURL")) {
-            var radioButton = document.createElement("img");
-            if (["Test Category 4", "Test Area 30", "Test Area 31"].indexOf(obj.testName) > -1) {
-                radioButton.src = "./images/github.svg";
-            } else if (obj.hasOwnProperty("testResult")) {
-                if (obj.testResult === "Pass") {
-                    div.style.backgroundColor = "#deffde";
-                    radioButton.src = "./images/tick.svg";
+        div.appendChild(radioButton);
+        div.appendChild(nameCard);
+        radioButton.style.cssFloat = "left";
+        if (parentNode.id === "contentPane") {
+            radioButton.innerHTML = minusSVG;
+        } else {
+            radioButton.innerHTML = plusSVG;
+        }
+        nameCard.className = "nameCard";
+        returnDiv.className = "cardHolder";
+        if (obj.hasOwnProperty("child")) {
+            div.appendChild(returnDiv);
+            radioButton.className = "haschild";
+            radioButton.onclick = function(e) {
+                let parent = this.parentNode;
+                if (this.firstChild.className.baseVal.indexOf("plus") > -1) {
+                    this.innerHTML = minusSVG;
                 } else {
-                    div.style.backgroundColor = "#ffe7e7";
-                    radioButton.src = "./images/cross.svg";
+                    this.innerHTML = plusSVG;
+                }
+                let cardCol = $($(parent.children[2]).children());
+                cardCol.transition({
+                    animation: "slide down",
+                    duration: Math.min(1000 / obj.child.length, 300),
+                    interval: Math.min(80, Math.max(200 / obj.child.length, 10))
+                });
+            }
+        } else if (obj.hasOwnProperty("cateName")) {
+            radioButton.innerHTML = reportSVG;
+        } else {
+            radioButton.innerHTML = dotSVG;
+        }
+
+        if (!obj.hasOwnProperty("loginURL") && !obj.hasOwnProperty("issueURL")) {
+            nameStr = document.createElement("div");
+            nameCard.appendChild(nameStr);
+            if (obj.hasOwnProperty("testResult")) {
+                if (obj.testResult === "Pass") {
+                    nameCard.style.backgroundColor = "#deffde";
+                    radioButton.style.border = "5px solid #66dc66";
+                } else {
+                    nameCard.style.backgroundColor = "#ffe7e7";
+                    radioButton.style.border = "5px solid #ffb2b2";
                 }
             } else {
-                radioButton.src = "./images/question.svg";
+                radioButton.style.border = "5px solid #e3e3e3";
             }
-            var nameStr = document.createElement("div");
             nameStr.textContent = obj.testName;
-            nameStr.style.pointerEvents = "none";
-            radioButton.height = "25";
-            radioButton.width = "20";
-            radioButton.style.cssFloat = "left";
-            radioButton.style.pointerEvents = "none";
-            testName.appendChild(radioButton);
-            nameStr.style.cssFloat = "left";
+            nameStr.className = "fieldTitle";
+            if (["Test Category 4", "Test Area 30", "Test Area 31"].indexOf(obj.testName) > -1) { // add github icon for devtopia links
+                let gitIcon = document.createElement("i");
+                gitIcon.className = "github icon";
+                gitIcon.style.color = "black";
+                gitIcon.style.paddingLeft = "20px";
+                nameStr.appendChild(gitIcon);
+            }
+            if (obj.hasOwnProperty("id") && ["Test Area 30", "Test Area 31"].indexOf(obj.testName) < 0) { // add info icon
+                let infoButton = document.createElement("a");
+                infoButton.href = "https://github.com/sillicon";
+                infoButton.target = "_blank";
+                infoButton.style.textDecoration = "none";
+                // let infoIcon = document.createElement("img");
+                let infoIcon = document.createElement("i");
+                // infoIcon.height = "25";
+                // infoIcon.width = "20";
+                infoIcon.className = "info circle icon";
+                infoIcon.style.fontSize = "1.4rem";
+                infoIcon.style.cssFloat = "right";
+                infoIcon.style.color = "#42aaf5";
+                infoIcon.title = "Click for more info";
+                infoButton.appendChild(infoIcon);
+                nameStr.appendChild(infoButton);
+            }
+            if (obj.hasOwnProperty("cateName")) {
+                nameStr.style.cursor = "pointer";
+                nameStr.onclick = function(e) {
+                    if (e.target.tagName.toLowerCase() != "label" && e.target.tagName.toLowerCase() != "i") {
+                        if (obj.hasOwnProperty("reportURL")) {
+                            window.open(obj.reportURL);
+                        } else {
+                            window.open(".\\report\\" + obj.testName);
+                        }
+                    }
+                }
+                let descrip = document.createElement("div");
+                let tempCollect = obj.testName.substring(0, obj.testName.lastIndexOf(".")).match(/[a-zA-Z JSAPI4.x-]+|[0-9_]+/g)[1];
+                let tempCol = tempCollect.split(/_/g);
+                tempCollect = "Test Date: " + tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2] + "<br>" + "Upload Time: " + tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
+                descrip.innerHTML = tempCollect;
+                descrip.style.margin = "auto auto 10px 30px";
+                //decide if user has privilege to change or delete result
+                let currentUser = JSON.parse(sessionStorage.getItem("user"));
+                if (currentUser && ["sillicon"].indexOf(currentUser.username) > -1) {
+                    let editIcon = document.createElement("i");
+                    let deleteIcon = document.createElement("i");
+                    nameStr.appendChild(editIcon);
+                    nameStr.appendChild(deleteIcon);
+                    editIcon.className = "write icon";
+                    editIcon.style.color = "black";
+                    editIcon.style.marginLeft = "10px";
+                    editIcon.title = "Change result";
+                    deleteIcon.className = "trash outline icon";
+                    deleteIcon.style.color = "black";
+                    deleteIcon.title = "Delete report";
+                    editIcon.onclick = function(e) {
+                        let modal, modalHeader, modalInfo, actions, yesBut, noBut, closeIcon;
+                        if (document.getElementById("editModal") === null) {
+                            modal = document.createElement("div");
+                            document.querySelector("body").appendChild(modal);
+                            modal.id = "editModal";
+                            modal.className = "ui modal";
+                            modalHeader = document.createElement("div");
+                            modalInfo = document.createElement("div");
+                            actions = document.createElement("actions");
+                            yesBut = document.createElement("div");
+                            noBut = document.createElement("div");
+                            closeIcon = document.createElement("i");
+                            modalHeader.className = "header";
+                            modalInfo.className = "content";
+                            actions.className = "actions";
+                            yesBut.className = "ok button";
+                            noBut.className = "cancel button";
+                            closeIcon.className = "close black icon";
+                            yesBut.textContent = "OK";
+                            noBut.textContent = "Cancel";
+                            modalHeader.textContent = "Change test result";
+                            modal.appendChild(modalHeader);
+                            modal.appendChild(modalInfo);
+                            actions.appendChild(yesBut);
+                            actions.appendChild(noBut);
+                            modal.appendChild(actions);
+                            modal.appendChild(closeIcon);
+                        } else {
+                            modal = document.querySelector("#editModal");
+                            modalHeader = modal.querySelector(".header");
+                            modalInfo = modal.querySelector(".content");
+                            actions = modal.querySelector(".actions");
+                            yesBut = modal.querySelector(".ok.button");
+                            noBut = modal.querySelector(".cancel.button");
+                        }
+                        modalInfo.textContent = "Do you want to alter the test result?";
+                        if (obj.testResult === "Pass") {
+                            modalInfo.textContent += " (Pass to Fail)";
+                        } else {
+                            modalInfo.textContent += " (Fail to Pass)";
+                        }
+                        $("#editModal").modal({
+                            inverted: true,
+                            onApprove: function() { // when OK is clicked
+                                let alterObj = {
+                                    _id: obj.uniqueID
+                                }
+                                let xhr = new XMLHttpRequest();
+                                xhr.onreadystatechange = function() {
+                                    if (this.readyState == 4 && this.status == 200) {
+                                        checkTestArea();
+                                    } else if (this.readyState == 4 && this.status == 500) {
+                                        let warnModal, modalInfo, closeIcon;
+                                        if (document.getElementById("warnModal") === null) {
+                                            warnModal = document.createElement("div");
+                                            modalInfo = document.createElement("div");
+                                            closeIcon = document.createElement("i");
+                                            document.querySelector("body").appendChild(warnModal);
+                                            warnModal.id = "warnModal";
+                                            warnModal.className = "ui modal";
+                                            closeIcon = document.createElement("i");
+                                            modalInfo.className = "content";
+                                            closeIcon.className = "close black icon";
+                                            warnModal.appendChild(modalInfo);
+                                            warnModal.appendChild(closeIcon);
+                                        } else {
+                                            warnModal = document.querySelector("#warnModal");
+                                            modalInfo = warnModal.querySelector(".content");
+                                            closeIcon = warnModal.querySelector(".close.icon");
+                                        }
+                                        modalInfo.textContent = this.responseText;
+                                        $("#warnModal").modal({
+                                            inverted: true,
+                                            onHidden: checkTestArea()
+                                        }).modal("setting", "transition", "scale").modal("show");
+                                    }
+                                }
+                                xhr.open("GET", "./alterResult" + formatParams(alterObj));
+                                xhr.send();
+                            }
+                        }).modal("setting", "transition", "scale").modal("show");
+                    }
+                    deleteIcon.onclick = function(e) {
+                        let modal, modalHeader, modalInfo, actions, yesBut, noBut, closeIcon;
+                        if (document.getElementById("deleteModal") === null) {
+                            modal = document.createElement("div");
+                            document.querySelector("body").appendChild(modal);
+                            modal.id = "deleteModal";
+                            modal.className = "ui modal";
+                            modalHeader = document.createElement("div");
+                            modalInfo = document.createElement("div");
+                            actions = document.createElement("actions");
+                            yesBut = document.createElement("div");
+                            noBut = document.createElement("div");
+                            closeIcon = document.createElement("i");
+                            modalHeader.className = "header";
+                            modalInfo.className = "content";
+                            actions.className = "actions";
+                            yesBut.className = "delete ok button";
+                            noBut.className = "cancel button";
+                            closeIcon.className = "close black icon";
+                            yesBut.textContent = "Delete";
+                            noBut.textContent = "Cancel";
+                            modalHeader.textContent = "Delete test result";
+                            modalInfo.textContent = "Do you want to delete this result?";
+                            modal.appendChild(modalHeader);
+                            modal.appendChild(modalInfo);
+                            actions.appendChild(yesBut);
+                            actions.appendChild(noBut);
+                            modal.appendChild(actions);
+                            modal.appendChild(closeIcon);
+                        } else {
+                            modal = document.querySelector("#deleteModal");
+                            modalHeader = modal.querySelector(".header");
+                            modalInfo = modal.querySelector(".content");
+                            actions = modal.querySelector(".actions");
+                            yesBut = modal.querySelector(".delete.ok.button");
+                            noBut = modal.querySelector(".cancel.button");
+                        }
+                        $("#deleteModal").modal({
+                            inverted: true,
+                            onApprove: function() { // when OK is clicked
+                                let deleteObj = {
+                                    _id: obj.uniqueID
+                                }
+                                let xhr = new XMLHttpRequest();
+                                xhr.onreadystatechange = function() {
+                                    if (this.readyState == 4 && this.status == 200) {
+                                        checkTestArea();
+                                    } else if (this.readyState == 4 && this.status == 500) {
+                                        let warnModal, modalInfo, closeIcon;
+                                        if (document.getElementById("warnModal") === null) {
+                                            warnModal = document.createElement("div");
+                                            modalInfo = document.createElement("div");
+                                            closeIcon = document.createElement("i");
+                                            document.querySelector("body").appendChild(warnModal);
+                                            warnModal.id = "warnModal";
+                                            warnModal.className = "ui modal";
+                                            closeIcon = document.createElement("i");
+                                            modalInfo.className = "content";
+                                            closeIcon.className = "close black icon";
+                                            warnModal.appendChild(modalInfo);
+                                            warnModal.appendChild(closeIcon);
+                                        } else {
+                                            warnModal = document.querySelector("#warnModal");
+                                            modalInfo = warnModal.querySelector(".content");
+                                            closeIcon = warnModal.querySelector(".close.icon");
+                                        }
+                                        modalInfo.textContent = this.responseText;
+                                        $("#warnModal").modal({
+                                            inverted: true,
+                                            onHidden: checkTestArea()
+                                        }).modal("setting", "transition", "scale").modal("show");
+                                    }
+                                }
+                                xhr.open("GET", "./deleteResult" + formatParams(deleteObj));
+                                xhr.send();
+                            }
+                        }).modal("setting", "transition", "scale").modal("show");
+                    }
+                }
+                //comment section
+                let commentImg = document.createElement("i");
+                let coNum = document.createElement("label");
+                coNum.className = "coNum";
+                commentImg.style.cssFloat = "right";
+                commentImg.style.fontSize = "1.3rem";
+                commentImg.style.color = "#005e95";
+                commentImg.className = "comment outline icon";
+                commentImg.title = "Toggle comment"
+                commentImg.onclick = function(e) {
+                    e.stopPropagation();
+                    if (this.className.indexOf("outline") > -1) {
+                        this.className = "comment icon";
+                        this.style.color = "#42aaf5";
+                    } else {
+                        this.className = "comment outline icon";
+                        this.style.color = "#005e95";
+                    }
+                    let parent = this.parentNode;
+                    let commentSection = $(parent.parentNode.childNodes[2]);
+                    commentSection.transition({
+                        animation: "slide down",
+                        duration: 400,
+                        interval: 30
+                    });
+                }
+                nameStr.appendChild(commentImg);
+                nameStr.appendChild(coNum);
+                nameCard.appendChild(descrip);
+                //create comment section
+                let comments = document.createElement("div");
+                comments.className = "commentsHolder";
+                let commentTitle = document.createElement("div");
+                commentTitle.textContent = "Comments";
+                commentTitle.style.fontWeight = "bold";
+                commentTitle.style.borderBottom = "1px solid #000000";
+                comments.appendChild(commentTitle);
+                if (obj.comments && obj.comments.length > 0) {
+                    coNum.textContent = obj.comments.length;
+                    for (let i = 0; i < obj.comments.length; i++) {
+                        //create existing comment card
+                        createCommentCard(obj.comments[i], comments, "append");
+                    }
+                } else {
+                    coNum.textContent = "0";
+                    let noComment = document.createElement("div");
+                    noComment.className = "commentCard nocomment";
+                    noComment.textContent = "No comment";
+                    comments.appendChild(noComment);
+                }
+                let commentButton = document.createElement("div");
+                commentButton.className = "cardButton";
+                if (currentUser) {
+                    commentButton.textContent = "Comment";
+                    commentButton.className += " buttonDisabled";
+                    let avatar = document.createElement("img");
+                    avatar.src = currentUser.photos[0].value;
+                    avatar.className = "avatar";
+                    avatar.alt = "userAvatar";
+                    comments.appendChild(avatar);
+                    let textBox = document.createElement("textarea");
+                    textBox.placeholder = "Leave a comment";
+                    textBox.maxLength = 255;
+                    textBox.oninput = function(e) {
+                        if (e.target.value != "") {
+                            commentButton.className = "cardButton";
+                        } else {
+                            commentButton.className = "cardButton buttonDisabled";
+                        }
+                    }
+                    comments.appendChild(textBox);
+                    commentButton.onclick = function(e) {
+                        e.target.className = "cardButton buttonDisabled";
+                        let requestJSON = {
+                            _id: obj.uniqueID,
+                            commenter: JSON.parse(sessionStorage.getItem("user")).displayName,
+                            commentText: e.target.previousElementSibling.value
+                        }
+                        let xmlHTTP = new XMLHttpRequest();
+                        xmlHTTP.open("POST", "./publishComment");
+                        xmlHTTP.setRequestHeader("Content-Type", "application/json");
+                        xmlHTTP.send(JSON.stringify(requestJSON));
+                        xmlHTTP.onreadystatechange = function() {
+                            if (this.readyState == 4 && this.status == 200) {
+                                let testEle = e.target.previousElementSibling.previousElementSibling.previousElementSibling;
+                                if (testEle.className === "commentCard nocomment") {
+                                    $(testEle).remove();
+                                }
+                                let input = {
+                                    commenter: requestJSON.commenter,
+                                    commentTime: new Date().toLocaleString(),
+                                    comment: requestJSON.commentText
+                                }
+                                createCommentCard(input, e.target.previousElementSibling.previousElementSibling, "insert");
+                                e.target.previousElementSibling.value = "";
+                                e.target.className = "cardButton buttonDisabled";
+                            }
+                        }
+                    }
+                } else {
+                    commentButton.textContent = "Log in to comment";
+                    commentButton.onclick = function() {
+                        location.href = "./login/github";
+                    }
+                }
+                comments.appendChild(commentButton);
+                $(comments).transition("hide");
+                nameCard.appendChild(comments);
+            }
         } else {
-            var nameStr = document.createElement("a");
+            //if is in manual category and not logged in
+            nameStr = document.createElement("a");
+            nameCard.appendChild(nameStr);
+            radioButton.style.border = "5px solid #e3e3e3";
             if (obj.hasOwnProperty("loginURL")) {
-                testName.className += " login";
+                nameCard.className += " login";
                 nameStr.textContent = "Click here to authorize GitHub access";
                 nameStr.href = obj.loginURL;
             } else if (obj.hasOwnProperty("issueURL")) {
-                testName.className += " issueTitle";
+                nameCard.className += " issueTitle";
                 nameStr.textContent = obj.issueName;
                 nameStr.href = obj.issueURL;
                 nameStr.target = "_blank";
                 nameStr.className = "issueName";
             }
         }
-        testName.appendChild(nameStr);
         if (obj.hasOwnProperty("issueURL")) {
-            div.appendChild(document.createElement("br"));
+            nameCard.appendChild(document.createElement("br"));
             for (let l = 0; l < obj.labels.length; l++) {
-                var label = document.createElement("div");
+                let label = document.createElement("div");
                 label.className = "label";
                 label.textContent = obj.labels[l].name;
                 label.style.backgroundColor = "#" + obj.labels[l].color;
                 //check background color if it's too light
-                var rgb = parseInt(obj.labels[l].color, 16); // convert rrggbb to decimal
-                var r = (rgb >> 16) & 0xff; // extract red
-                var g = (rgb >> 8) & 0xff; // extract green
-                var b = (rgb >> 0) & 0xff; // extract blue
-                var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+                let rgb = parseInt(obj.labels[l].color, 16); // convert rrggbb to decimal
+                let r = (rgb >> 16) & 0xff; // extract red
+                let g = (rgb >> 8) & 0xff; // extract green
+                let b = (rgb >> 0) & 0xff; // extract blue
+                let luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
                 if (luma > 150) {
                     label.style.color = "black";
                 } else {
                     label.style.color = "white";
                 }
-                div.appendChild(label);
+                nameCard.appendChild(label);
             }
-            var info = document.createElement("div");
+            let info = document.createElement("div");
             info.className = "info";
             info.textContent = "assigned to:";
             if (obj.assignees.length === 0) {
@@ -1155,160 +1563,10 @@ function createOrdinary(jsonObj) {
                 }
             }
             info.textContent += " created by: " + obj.author.login + " milestone: " + obj.milestone.title;
-            div.appendChild(info);
+            nameCard.appendChild(info);
         }
 
-        if (obj.hasOwnProperty("child")) {
-            var arrow = document.createElement("img");
-            arrow.style.cssFloat = "left";
-            arrow.style.pointerEvents = "none";
-            arrow.height = "25";
-            arrow.width = "15";
-            arrow.src = "./images/leftarrow.svg";
-            if (div.parentNode == document.querySelector("#contentPane")) {
-                arrow.className = "expanded";
-            }
-            testName.appendChild(arrow);
-            testName.onclick = function(e) {
-                if (!(e.target.tagName === "IMG" && e.target.src.indexOf("info.svg") > 0)) {
-                    var parent = e.target.parentNode;
-                    if (e.target.childNodes[2].className == "") {  
-                        e.target.childNodes[2].className = "expanded";
-                    } else {
-                        e.target.childNodes[2].className = "";
-                    }
-                    var cardCol = $($(parent).children().splice(1));
-                    cardCol.transition({
-                        animation : 'scale',
-                        duration  : 300,
-                        interval  : 30
-                    });
-                }
-            }
-        } else if (obj.hasOwnProperty("cateName")) {
-            testName.onclick = function() {
-                if (!(e.target.tagName === "IMG" && e.target.src.indexOf("comment.svg") > 0)) {
-                    window.open(".\\report\\" + obj.testName);
-                }
-            }
-            testName.style.height = "30px";
-            var descrip = document.createElement("div");
-            var tempCollect = obj.testName.substring(0, obj.testName.lastIndexOf(".")).match(/[a-zA-Z ]+|[0-9_]+/g)[1];
-            var tempCol = tempCollect.split(/_/g);
-            tempCollect = "Test Date: " + tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2] + "<br>" + "Upload Time: " + tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
-            descrip.innerHTML = tempCollect;
-            descrip.style.margin = "auto auto 10px 30px";
-            div.appendChild(descrip);
-            //create comment icon
-            let commentImg = document.createElement("img");
-            commentImg.height = "25";
-            commentImg.width = "20";
-            commentImg.style.cssFloat = "right";
-            commentImg.src = "./images/comment.svg";
-            commentImg.onclick = function(e) {
-                let parent = e.target.parentNode;
-                let commentSection = $(parent.nextElementSibling.nextElementSibling);
-                commentSection.transition({
-                    animation: "scale",
-                    duration: 300,
-                    interval: 30
-                });
-            }
-            testName.appendChild(commentImg);
-            //create comment section
-            let comments = document.createElement("div");
-            comments.id = "commentsHolder";
-            let commentTitle = document.createElement("div");
-            commentTitle.textContent = "Commnets";
-            commentTitle.style.fontWeight = "bold";
-            commentTitle.style.borderBottom = "1px solid #000000";
-            comments.appendChild(commentTitle);
-            if (obj.comments && obj.comments.length > 0) {
-                for (let i = 0; i < obj.comments.length; i++) {
-                    //create existing comment card
-                    createCommentCard(obj.comments[i], comments, "append");
-                }
-            } else {
-                let noComment = document.createElement("div");
-                noComment.className = "commentCard nocomment";
-                noComment.textContent = "No comment";
-                comments.appendChild(noComment);
-            }
-            let currentUser = JSON.parse(sessionStorage.getItem("user"));
-            let commentButton = document.createElement("div");
-            commentButton.className = "cardButton";
-            if (currentUser) {
-                commentButton.textContent = "Comment";
-                commentButton.className += " buttonDisabled";
-                let avatar = document.createElement("img");
-                avatar.src = currentUser.photos[0].value;
-                avatar.className = "avatar";
-                comments.appendChild(avatar);
-                let textBox = document.createElement("textarea");
-                textBox.placeholder = "Leave a comment";
-                textBox.maxLength = 255;
-                textBox.oninput = function (e) {
-                    if (e.target.value != "") {
-                        commentButton.className = "cardButton";
-                    } else {
-                        commentButton.className = "cardButton buttonDisabled";
-                    }
-                }
-                comments.appendChild(textBox);
-                commentButton.onclick = function(e) {
-                    e.target.className = "cardButton buttonDisabled";
-                    let tempName = JSON.parse(sessionStorage.getItem("user")).displayName;
-                    if (tempName == null) {
-                        tempName = JSON.parse(sessionStorage.getItem("user")).username;;
-                    }
-                    let requestJSON = {
-                        _id: obj.uniqueID,
-                        commenter: tempName,
-                        commentText: e.target.previousElementSibling.value
-                    }
-                    let xmlHTTP = new XMLHttpRequest();
-                    xmlHTTP.open("POST", "./publishComment");
-                    xmlHTTP.setRequestHeader("Content-Type", "application/json");
-                    xmlHTTP.send(JSON.stringify(requestJSON));
-                    xmlHTTP.onreadystatechange = function () {
-                        if (this.readyState == 4 && this.status == 200) {
-                            let testEle = e.target.previousElementSibling.previousElementSibling.previousElementSibling;
-                            if (testEle.className === "commentCard nocomment") {
-                                $(testEle).remove();
-                            }
-                            let input = {
-                                commenter: requestJSON.commenter,
-                                commentTime: new Date().toLocaleString(),
-                                comment: requestJSON.commentText
-                            }
-                            createCommentCard(input, e.target.previousElementSibling.previousElementSibling, "insert");
-                            e.target.className = "cardButton";
-                        }
-                    }
-                }
-            } else {
-                commentButton.textContent = "Log in to comment";
-                commentButton.onclick = function() {
-                    location.href = "./login/github";
-                }
-            }
-            comments.appendChild(commentButton);
-            $(comments).transition("hide");
-            div.appendChild(comments);
-        }
-        if (obj.hasOwnProperty("id") && ["Test Area 30", "Test Area 31"].indexOf(obj.testName) < 0) {
-            var infoButton = document.createElement("a");
-            infoButton.href = "https://github.com/sillicon";
-            infoButton.target = '_blank';
-            var infoIcon = document.createElement("img");
-            infoIcon.height = "25";
-            infoIcon.width = "20";
-            infoIcon.style.cssFloat = "right";
-            infoIcon.src = "./images/info.svg";
-            infoButton.appendChild(infoIcon);
-            testName.appendChild(infoButton);
-        }
-        return div;
+        return returnDiv;
     }
 
     function createCommentCard(input, targetElement, position) {
@@ -1499,10 +1757,13 @@ function createTreemap(jsonObj) {
             return d.data.hasOwnProperty("cateName");
         })
         .attr("class", "treemapNode reportName")
-        .attr('cursor', 'pointer');
+        .attr("cursor", "pointer");
 
     cell.append("title")
         .text(function(d) {
+            if (d.data.hasOwnProperty("reportURL")) {
+                return d.data.reportURL;
+            }
             return d.data.testName;
         });
 
@@ -1524,7 +1785,11 @@ function createTreemap(jsonObj) {
 
     function click(d) {
         if (!d.children && d.data.hasOwnProperty("cateName")) {
-            window.open(".\\report\\" + d.data.testName);
+            if (d.data.hasOwnProperty("reportURL")) {
+                window.open(d.data.reportURL);
+            } else {
+                window.open(".\\report\\" + d.data.testName);
+            }
         }
     }
 }
@@ -1550,7 +1815,7 @@ function exportSVG() {
     setInlineStyles(emptySvg, emptySvgDeclarationComputed);
 
     var html = emptySvg.outerHTML;
-    var imgsrc = 'data:image/svg+xml;utf8,' + html;
+    var imgsrc = "data:image/svg+xml;utf8," + html;
     var image = new Image();
     image.src = imgsrc;
     image.onload = function(params) {
@@ -1599,7 +1864,7 @@ function exportSVG() {
                     computedStyleStr += key + ":" + value + ";";
                 }
             }
-            element.setAttribute('style', computedStyleStr);
+            element.setAttribute("style", computedStyleStr);
         }
 
         function traverse(obj) {
@@ -1611,7 +1876,7 @@ function exportSVG() {
                 if (node && node.hasChildNodes()) {
                     var child = node.firstChild;
                     while (child) {
-                        if (child.nodeType === 1 && child.nodeName != 'SCRIPT') {
+                        if (child.nodeType === 1 && child.nodeName != "SCRIPT") {
                             tree.push(child);
                             visit(child);
                         }
@@ -1631,10 +1896,10 @@ function getTodayDate() {
     var mm = today.getMonth() + 1;
     var yyyy = today.getFullYear();
     if (dd < 10) {
-        dd = '0' + dd;
+        dd = "0" + dd;
     }
     if (mm < 10) {
-        mm = '0' + mm;
+        mm = "0" + mm;
     }
     return yyyy + "-" + mm + "-" + dd;
 }
@@ -1665,5 +1930,402 @@ function preloadImages(array) {
         }
         list.push(img);
         img.src = array[i];
+    }
+}
+
+function getSummary() {
+    let testSummary = {
+        "cate1CateNum": 0,
+        "cate1CateTest": 0,
+        "cate1TestNum": 0,
+        "cate1TestPass": 0,
+        "cate2CateNum": 0,
+        "cate2CateTest": 0,
+        "cate2TestNum": 0,
+        "cate2TestPass": 0,
+        "cate3CateNum": 0,
+        "cate3CateTest": 0,
+        "cate3TestNum": 0,
+        "cate3TestPass": 0
+    }
+    let requestParams = {
+        envir: document.querySelector(".naviActive").textContent,
+        testDate: document.querySelector("#chooseDay").value
+    }
+
+    let reportReq = new XMLHttpRequest();
+    reportReq.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            let latestReports = JSON.parse(this.responseText);
+            let cateReq = new XMLHttpRequest();
+            cateReq.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    let testCate = {
+                        testName: "QA Category",
+                        child: JSON.parse(this.responseText)
+                    }
+                    let reportCount = [];
+                    for (let i = 0; i < latestReports.length; i++) {
+                        let report = latestReports[i];
+                        if (reportCount[report.testID] === undefined) {
+                            reportCount[report.testID] = {
+                                pass: 0,
+                                total: 0
+                            }
+                            if (report.testResult === "Pass") {
+                                reportCount[report.testID].pass++;
+                            }
+                            reportCount[report.testID].total++;
+                        } else {
+                            if (report.testResult === "Pass") {
+                                reportCount[report.testID].pass++;
+                            }
+                            reportCount[report.testID].total++;
+                        }
+                    }
+
+                    let depthObj = [testCate];
+                    let arr = [0];
+                    while (depthObj.length > 0) {
+                        if (arr[arr.length - 1] <= depthObj[depthObj.length - 1].child.length - 1) {
+                            let tempObj = depthObj[depthObj.length - 1].child[arr[arr.length - 1]];
+                            if (tempObj.hasOwnProperty("child")) {
+                                depthObj.push(tempObj);
+                                arr.push(0);
+                            } else {
+                                if (arr[0] === 0) {
+                                    testSummary.cate1CateNum++;
+                                } else if (arr[0] === 1) {
+                                    testSummary.cate2CateNum++;
+                                } else if (arr[0] === 2) {
+                                    testSummary.cate3CateNum++;
+                                }
+                                if (reportCount[tempObj.id] != undefined) {
+                                    let count = reportCount[tempObj.id];
+                                    if (arr[0] === 0) {
+                                        testSummary.cate1CateTest++;
+                                        testSummary.cate1TestNum += count.total;
+                                        testSummary.cate1TestPass += count.pass;
+                                    } else if (arr[0] === 1) {
+                                        testSummary.cate2CateTest++;
+                                        testSummary.cate2TestNum += count.total;
+                                        testSummary.cate2TestPass += count.pass;
+                                    } else if (arr[0] === 2) {
+                                        testSummary.cate3CateTest++;
+                                        testSummary.cate3TestNum += count.total;
+                                        testSummary.cate3TestPass += count.pass;
+                                    }
+                                }
+                                arr[arr.length - 1]++;
+                            }
+                        } else {
+                            arr.pop();
+                            depthObj.pop();
+                            arr[arr.length - 1]++;
+                        }
+                    }
+                    let modal;
+                    if (document.getElementById("modal") === null) {
+                        modal = d3.select("body").append("div").attr("id", "modal");
+                    } else {
+                        modal = d3.select("#modal");
+                    }
+                    modal.attr("class", "ui modal");
+                    let rates = [];
+                    rates[0] = [testSummary.cate1CateTest, testSummary.cate1CateNum];
+                    rates[1] = [testSummary.cate2CateTest, testSummary.cate2CateNum];
+                    rates[2] = [testSummary.cate3CateTest, testSummary.cate3CateNum];
+                    rates[3] = [(testSummary.cate1TestPass + testSummary.cate2TestPass + testSummary.cate3TestPass), (testSummary.cate1TestNum + testSummary.cate2TestNum + testSummary.cate3TestNum)];
+                    for (let i = 0; i < 4; i++) {
+                        createGauge(i, modal, rates[i]);
+                    }
+                    $("#modal").modal("show");
+                }
+            }
+            cateReq.open("GET", "./getTestName");
+            cateReq.send();
+        }
+    }
+    reportReq.open("GET", "./getLatestReports" + formatParams(requestParams));
+    reportReq.send();
+
+    function createGauge(index, modal, counts) {
+        let div, gauge;
+        let divID = "gaugeBlock" + index;
+        let gaugeID = "gauge" + index;
+        let rate = counts[1] === 0 ? 0 : counts[0] / counts[1];
+        if (document.getElementById(gaugeID) === null) {
+            div = modal.append("div").attr("id", divID).attr("class", "gaugeBlock");
+            let icon = modal.append("i").attr("class", "close icon");
+            if (index === 0) {
+                div.append("div").attr("class", "gaugeDesc").text("Category 1 coverage:");
+                div.append("div").attr("class", "gaugeInfo").text(counts[1] + " areas, " + counts[0] + " tested.");
+            } else if (index === 1) {
+                div.append("div").attr("class", "gaugeDesc").text("Category 2 coverage:");
+                div.append("div").attr("class", "gaugeInfo").text(counts[1] + " areas, " + counts[0] + " tested.");
+            } else if (index === 2) {
+                div.append("div").attr("class", "gaugeDesc").text("Category 3 coverage:");
+                div.append("div").attr("class", "gaugeInfo").text(counts[1] + " areas, " + counts[0] + " tested.");
+            } else {
+                div.append("div").attr("class", "gaugeDesc").text("Total tests pass rate:");
+                if (counts[1] === 1) {
+                    div.append("div").attr("class", "gaugeInfo").text(counts[1] + " test, " + counts[0] + " passed.");
+                } else {
+                    div.append("div").attr("class", "gaugeInfo").text(counts[1] + " tests, " + counts[0] + " passed.");
+                }
+            }
+            gauge = div.append("svg").attr("id", gaugeID).attr("class", "gauge");
+        } else {
+            div = d3.select("#" + divID);
+            gauge = d3.select("#" + gaugeID);
+            div.select("div.gaugeInfo").text(function() {
+                let tempStr = this.textContent;
+                let strCol = tempStr.split(/[0-9_]+/);
+                tempStr = counts[1] + strCol[1] + counts[0] + strCol[2];
+                return tempStr;
+            });
+        }
+
+        let config = liquidFillGaugeDefaultSettings();
+        config.circleColor = d3.interpolateBuGn(rate * 0.6 + 0.1);
+        config.textColor = d3.interpolateBuGn(rate * 0.5 + 0.1);
+        config.waveColor = d3.interpolateBuGn(rate * 0.7 + 0.2);
+        config.waveTextColor = d3.interpolateBuGn(rate / 4);
+        loadLiquidFillGauge(gauge, Math.round(rate * 100), config);
+    }
+
+    function liquidFillGaugeDefaultSettings() {
+        return {
+            minValue: 0, // The gauge minimum value.
+            maxValue: 100, // The gauge maximum value.
+            circleThickness: 0.05, // The outer circle thickness as a percentage of it's radius.
+            circleFillGap: 0.05, // The size of the gap between the outer circle and wave circle as a percentage of the outer circles radius.
+            circleColor: "#178BCA", // The color of the outer circle.
+            waveHeight: 0.1, // The wave height as a percentage of the radius of the wave circle.
+            waveCount: 2, // The number of full waves per width of the wave circle.
+            waveRiseTime: 2000, // The amount of time in milliseconds for the wave to rise from 0 to it's final height.
+            waveAnimateTime: 1500, // The amount of time in milliseconds for a full wave to enter the wave circle.
+            waveRise: true, // Control if the wave should rise from 0 to it's full height, or start at it's full height.
+            waveHeightScaling: true, // Controls wave size scaling at low and high fill percentages. When true, wave height reaches it's maximum at 50% fill, and minimum at 0% and 100% fill. This helps to prevent the wave from making the wave circle from appear totally full or empty when near it's minimum or maximum fill.
+            waveAnimate: true, // Controls if the wave scrolls or is static.
+            waveColor: "#178BCA", // The color of the fill wave.
+            waveOffset: .25, // The amount to initially offset the wave. 0 = no offset. 1 = offset of one full wave.
+            textVertPosition: .5, // The height at which to display the percentage text withing the wave circle. 0 = bottom, 1 = top.
+            textSize: 1, // The relative height of the text to display in the wave circle. 1 = 50%
+            valueCountUp: true, // If true, the displayed value counts up from 0 to it's final value upon loading. If false, the final value is displayed.
+            displayPercent: true, // If true, a % symbol is displayed after the value.
+            textColor: "#045681", // The color of the value text when the wave does not overlap it.
+            waveTextColor: "#A4DBf8" // The color of the value text when the wave overlaps it.
+        };
+    }
+
+    function loadLiquidFillGauge(element, value, config) {
+        if (config == null) config = liquidFillGaugeDefaultSettings();
+        const gauge = element;
+        const elementId = gauge.node().id;
+        if (gauge.node().childNodes.length > 0) {
+            for (let i = 0; i < gauge.node().childNodes.length; i++) {
+                const element = gauge.node().childNodes[i];
+                gauge.node().removeChild(element);
+            }
+        }
+        const height = parseInt(gauge.style("width").substring(0, gauge.style("width").length - 2));
+        const width = parseInt(gauge.style("height").substring(0, gauge.style("height").length - 2));
+        const radius = Math.min(height, width) / 2;
+        const locationX = width / 2 - radius;
+        const locationY = height / 2 - radius;
+        const fillPercent = Math.max(config.minValue, Math.min(config.maxValue, value)) / config.maxValue;
+
+        let waveHeightScale = null;
+        if (config.waveHeightScaling) {
+            waveHeightScale = d3.scaleLinear()
+                .range([0, config.waveHeight, 0])
+                .domain([0, 50, 100]);
+        } else {
+            waveHeightScale = d3.scaleLinear()
+                .range([config.waveHeight, config.waveHeight])
+                .domain([0, 100]);
+        }
+
+        const textPixels = (config.textSize * radius / 2);
+        const textFinalValue = parseFloat(value).toFixed(2);
+        const textStartValue = config.valueCountUp ? config.minValue : textFinalValue;
+        const percentText = config.displayPercent ? "%" : "";
+        const circleThickness = config.circleThickness * radius;
+        const circleFillGap = config.circleFillGap * radius;
+        const fillCircleMargin = circleThickness + circleFillGap;
+        const fillCircleRadius = radius - fillCircleMargin;
+        const waveHeight = fillCircleRadius * waveHeightScale(fillPercent * 100);
+
+        const waveLength = fillCircleRadius * 2 / config.waveCount;
+        const waveClipCount = 1 + config.waveCount;
+        const waveClipWidth = waveLength * waveClipCount;
+
+        // Rounding functions so that the correct number of decimal places is always displayed as the value counts up.
+        let textRounder = function(value) {
+            return Math.round(value);
+        };
+        if (parseFloat(textFinalValue) != parseFloat(textRounder(textFinalValue))) {
+            textRounder = function(value) {
+                return parseFloat(value).toFixed(1);
+            };
+        }
+        if (parseFloat(textFinalValue) != parseFloat(textRounder(textFinalValue))) {
+            textRounder = function(value) {
+                return parseFloat(value).toFixed(2);
+            };
+        }
+
+        // Data for building the clip wave area.
+        const data = [];
+        for (let i = 0; i <= 40 * waveClipCount; i++) {
+            data.push({
+                x: i / (40 * waveClipCount),
+                y: (i / (40))
+            });
+        }
+
+        // Scales for drawing the outer circle.
+        const gaugeCircleX = d3.scaleLinear().range([0, 2 * Math.PI]).domain([0, 1]);
+        const gaugeCircleY = d3.scaleLinear().range([0, radius]).domain([0, radius]);
+
+        // Scales for controlling the size of the clipping path.
+        const waveScaleX = d3.scaleLinear().range([0, waveClipWidth]).domain([0, 1]);
+        const waveScaleY = d3.scaleLinear().range([0, waveHeight]).domain([0, 1]);
+
+        // Scales for controlling the position of the clipping path.
+        const waveRiseScale = d3.scaleLinear()
+            // The clipping area size is the height of the fill circle + the wave height, so we position the clip wave
+            // such that the it will overlap the fill circle at all when at 0%, and will totally cover the fill
+            // circle at 100%.
+            .range([(fillCircleMargin + fillCircleRadius * 2 + waveHeight), (fillCircleMargin - waveHeight)])
+            .domain([0, 1]);
+        const waveAnimateScale = d3.scaleLinear()
+            .range([0, waveClipWidth - fillCircleRadius * 2]) // Push the clip area one full wave then snap back.
+            .domain([0, 1]);
+
+        // Scale for controlling the position of the text within the gauge.
+        const textRiseScaleY = d3.scaleLinear()
+            .range([fillCircleMargin + fillCircleRadius * 2, (fillCircleMargin + textPixels * 0.7)])
+            .domain([0, 1]);
+
+        // Center the gauge within the parent SVG.
+        const gaugeGroup = gauge.append("g")
+            .attr("transform", "translate(" + locationX + "," + locationY + ")");
+
+        // Draw the outer circle.
+        const gaugeCircleArc = d3.arc()
+            .startAngle(gaugeCircleX(0))
+            .endAngle(gaugeCircleX(1))
+            .outerRadius(gaugeCircleY(radius))
+            .innerRadius(gaugeCircleY(radius - circleThickness));
+        gaugeGroup.append("path")
+            .attr("d", gaugeCircleArc)
+            .style("fill", config.circleColor)
+            .attr("transform", "translate(" + radius + "," + radius + ")");
+
+        // Text where the wave does not overlap.
+        const text1 = gaugeGroup.append("text")
+            .text(textRounder(textStartValue) + percentText)
+            .attr("class", "liquidFillGaugeText")
+            .attr("text-anchor", "middle")
+            .attr("font-size", textPixels + "px")
+            .style("fill", config.textColor)
+            .attr("transform", "translate(" + radius + "," + textRiseScaleY(config.textVertPosition) + ")");
+        let text1InterpolatorValue = textStartValue;
+
+
+        // The clipping wave area.
+        const clipArea = d3.area()
+            .x(function(d) {
+                return waveScaleX(d.x);
+            })
+            .y0(function(d) {
+                return waveScaleY(Math.sin(Math.PI * 2 * config.waveOffset * -1 + Math.PI * 2 * (1 - config.waveCount) + d.y * 2 * Math.PI));
+            })
+            .y1(function(d) {
+                return (fillCircleRadius * 2 + waveHeight);
+            });
+        const waveGroup = gaugeGroup.append("defs")
+            .append("clipPath")
+            .attr("id", "clipWave" + elementId);
+        const wave = waveGroup.append("path")
+            .datum(data)
+            .attr("d", clipArea)
+            .attr("T", 0);
+
+        // The inner circle with the clipping wave attached.
+        const fillCircleGroup = gaugeGroup.append("g")
+            .attr("clip-path", "url(#clipWave" + elementId + ")");
+        fillCircleGroup.append("circle")
+            .attr("cx", radius)
+            .attr("cy", radius)
+            .attr("r", fillCircleRadius)
+            .style("fill", config.waveColor);
+
+        // Text where the wave does overlap.
+        const text2 = fillCircleGroup.append("text")
+            .text(textRounder(textStartValue))
+            .attr("class", "liquidFillGaugeText")
+            .attr("text-anchor", "middle")
+            .attr("font-size", textPixels + "px")
+            .style("fill", config.waveTextColor)
+            .attr("transform", "translate(" + radius + "," + textRiseScaleY(config.textVertPosition) + ")");
+        let text2InterpolatorValue = textStartValue;
+
+        // Make the value count up.
+        if (config.valueCountUp) {
+            text1.transition()
+                .duration(config.waveRiseTime)
+                .tween("text", function() {
+                    const i = d3.interpolateNumber(text1InterpolatorValue, textFinalValue);
+                    return function(t) {
+                        text1InterpolatorValue = textRounder(i(t));
+                        // Set the gauge's text with the new value and append the % sign
+                        // to the end
+                        text1.text(text1InterpolatorValue + percentText);
+                    }
+                });
+            text2.transition()
+                .duration(config.waveRiseTime)
+                .tween("text", function() {
+                    const i = d3.interpolateNumber(text2InterpolatorValue, textFinalValue);
+                    return function(t) {
+                        text2InterpolatorValue = textRounder(i(t));
+                        // Set the gauge's text with the new value and append the % sign
+                        // to the end                
+                        text2.text(text2InterpolatorValue + percentText);
+                    }
+                });
+        }
+
+        // Make the wave rise. wave and waveGroup are separate so that horizontal and vertical movement can be controlled independently.
+        const waveGroupXPosition = fillCircleMargin + fillCircleRadius * 2 - waveClipWidth;
+        if (config.waveRise) {
+            waveGroup.attr("transform", "translate(" + waveGroupXPosition + "," + waveRiseScale(0) + ")")
+                .transition()
+                .duration(config.waveRiseTime)
+                .attr("transform", "translate(" + waveGroupXPosition + "," + waveRiseScale(fillPercent) + ")")
+                .on("start", function() {
+                    wave.attr("transform", "translate(1,0)");
+                }); // This transform is necessary to get the clip wave positioned correctly when waveRise=true and waveAnimate=false. The wave will not position correctly without this, but it's not clear why this is actually necessary.
+        } else {
+            waveGroup.attr("transform", "translate(" + waveGroupXPosition + "," + waveRiseScale(fillPercent) + ")");
+        }
+
+        if (config.waveAnimate) animateWave();
+
+        function animateWave() {
+            wave.attr("transform", "translate(" + waveAnimateScale(wave.attr("T")) + ",0)");
+            wave.transition()
+                .duration(config.waveAnimateTime * (1 - wave.attr("T")))
+                .ease(d3.easeLinear)
+                .attr("transform", "translate(" + waveAnimateScale(1) + ",0)")
+                .attr("T", 1)
+                .on("end", function() {
+                    wave.attr("T", 0);
+                    animateWave(config.waveAnimateTime);
+                });
+        }
     }
 }

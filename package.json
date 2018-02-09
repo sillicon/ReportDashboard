@@ -1,6 +1,6 @@
 {
   "name": "qadashboard",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "sillicon",
   "private": true,
   "scripts": {
@@ -9,7 +9,6 @@
   "dependencies": {
     "body-parser": "~1.16.0",
     "cookie-parser": "~1.4.3",
-    "dateformat": "^2.2.0",
     "debug": "^2.6.9",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
@@ -25,7 +24,9 @@
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
-    "grunt": "^1.0.1",
+    "eslint": "^4.17.0",
+    "grunt": "^1.0.2",
+    "grunt-contrib-cssmin": "^2.2.1",
     "grunt-contrib-uglify": "^3.3.0"
   }
 }

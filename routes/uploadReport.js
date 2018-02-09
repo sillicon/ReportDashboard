@@ -46,27 +46,47 @@ router.post("/uploadReport", function (req, res) {
             testResult: tempResult,
             fileName: fileName,
             browser: req.body.reportBrowser,
-            envirTested: req.body.reportEnvi,
             hiveTested: req.body.reportHive
         }
-        fs.closeSync(fs.openSync(reportFilePath, "w"));
-        if (fileName.indexOf("SharingAPI") > -1) {
-            inputHTML = "<body style='white-space: pre-wrap;'>" + inputHTML + "</body>";
+        if (req.body.reportEnvi.toLowerCase() === "envir1") {
+            insertObj.envirTested = "Envir1";
+        } else if (req.body.reportEnvi.toLowerCase() === "envir2") {
+            insertObj.envirTested = "Envir2";
+        } else {
+            insertObj.envirTested = "Envir3";
         }
-        fs.writeFile(reportFilePath, inputHTML, "utf8", function write(err) {
-            if (err) {
-                res.status(500).send("Write html into database failed!");
-                throw err;
-            }
-            collection.insertOne(insertObj).then(function (result) {
+        if (req.body.hasOwnProperty("comments")) {
+            insertObj.comments = req.body.comments;
+            insertObj.comments[0].commentTime = new Date();
+        }
+        if (req.body.hasOwnProperty("reportURL")) {
+            insertObj.reportURL = req.body.reportURL;
+            collection.insertOne(insertObj).then(function(result) {
                 res.send("Upload Complete!");
-            }, function (err) {
+            }, function(err) {
                 res.send(err);
                 throw err;
-            })
-        });
+            });
+        } else {
+            fs.closeSync(fs.openSync(reportFilePath, "w"));
+            if (fileName.indexOf("SharingAPI") > -1) {
+                inputHTML = "<body style='white-space: pre-wrap;'>" + inputHTML + "</body>";
+            }
+            fs.writeFile(reportFilePath, inputHTML, "utf8", function write(err) {
+                if (err) {
+                    res.status(500).send("Write html into database failed!");
+                    throw err;
+                }
+                collection.insertOne(insertObj).then(function (result) {
+                    res.send("Upload Complete!");
+                }, function (err) {
+                    res.send(err);
+                    throw err;
+                })
+            });
+        }
     }
-})
+});
 
 router.post("/publishComment", function (req, res) {
     var db = req.app.get("dbConnection");
@@ -108,7 +128,65 @@ router.post("/publishComment", function (req, res) {
             res.status(200).send("Post comment complete.");
         }
     });
-})
+});
+
+router.get("/deleteResult", function(req, res) {
+    let db = req.app.get("dbConnection");
+    let dataCol = db.collection("reportResult");
+    dataCol.find({
+        "_id": ObjectID(req.query._id)
+    }).toArray(function(err, docs) {
+        if (err || docs.length === 0) {
+            res.status(500).send("Unable to find the report in database! Maybe it's already deleted.");
+        } else {
+            let doc = docs[0];
+            let reportFilePath = path.join(path.dirname(__dirname), "public", "report", doc.fileName);
+            fs.stat(reportFilePath, function (err, stats) {
+                if (stats) {
+                    fs.unlinkSync(reportFilePath);
+                }
+                dataCol.deleteOne({
+                    "_id": ObjectID(req.query._id)
+                }).then(function(result) {
+                    if (result.deletedCount > 0) {
+                        res.status(200).send("Delete complete.");
+                    } else {
+                        res.status(500).send("Unable to delete the result.");
+                    }
+                });
+            })
+        }
+    });
+});
+
+router.get("/alterResult", function(req, res) {
+    let db = req.app.get("dbConnection");
+    let dataCol = db.collection("reportResult");
+    dataCol.find({
+        "_id": ObjectID(req.query._id)
+    }).toArray(function(err, docs) {
+        if (err || docs.length === 0) {
+            res.status(500).send("Unable to find the report in database!");
+        } else {
+            let doc = docs[0];
+            let tempResult = (doc.testResult === "Pass") ? "Fail" : "Pass";
+            dataCol.update({
+                "_id": ObjectID(req.query._id)
+            }, {
+                "$set": {
+                    "testResult": tempResult
+                }
+            }).then(function(result) {
+                if (result.result.ok > 0 && result.result.nModified > 0) {
+                    res.status(200).send("Alter result complete.");
+                } else {
+                    res.status(500).send("Unable to alter the result.");
+                }
+            });
+        }
+
+    });
+});
 
 function findTestName(dbCol, inputID, cb) {
     dbCol.find().toArray(function (err, docs) {

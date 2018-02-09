@@ -4,6 +4,10 @@ data/diagnostic.data/
 data/log/mongod.*
 data/*.wt
 data/*.lock
-data/*.bson
 data/*.turtle
 data/WiredTiger
+*.bson
+data/dump/qareport/backupCate.metadata.json
+data/dump/qareport/reportResult.metadata.json
+data/dump/qareport/backupResult.metadata.json
+data/dump/qareport/reportCategory.metadata.json
