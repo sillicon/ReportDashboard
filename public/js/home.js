@@ -1225,7 +1225,7 @@ function createOrdinary(jsonObj) {
                     }
                 }
                 let descrip = document.createElement("div");
-                let tempCollect = obj.testName.substring(0, obj.testName.lastIndexOf(".")).match(/[a-zA-Z JSAPI4.x-]+|[0-9_]+/g)[1];
+                let tempCollect = obj.testName.substring(0, obj.testName.lastIndexOf(".")).match(/[a-zA-Z]+|[0-9_]+/g)[1];
                 let tempCol = tempCollect.split(/_/g);
                 tempCollect = "Test Date: " + tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2] + "<br>" + "Upload Time: " + tempCol[3] + ":" + tempCol[4] + ":" + tempCol[5];
                 descrip.innerHTML = tempCollect;
@@ -1620,7 +1620,13 @@ function createOrdinary(jsonObj) {
 
 function createTreemap(jsonObj) {
     document.querySelector("#exprotContainer").style.display = "none";
-    jsonObj.child.splice(3); // do not show github issues in Treemap view
+    for (let i = 0; i < jsonObj.child.length; i++) {
+        let element = jsonObj.child[i];
+        if (element.testName.indexOf("Category 4") > -1) {
+            jsonObj.child.splice(i, 1); // do not show github issues in Treemap view
+            break;
+        }
+    }
     var tempStr = getComputedStyle(document.querySelector("#contentPane")).width;
     var svgWidth = parseInt(tempStr.substr(0, tempStr.length - 2)) - 50;
     var svgHeight = svgWidth + 100;
@@ -1740,7 +1746,7 @@ function createTreemap(jsonObj) {
         .selectAll("tspan")
         .data(function(d) {
             if (d.data.hasOwnProperty("cateName")) {
-                var collect = d.data.testName.substring(0, d.data.testName.lastIndexOf(".")).match(/[a-zA-Z JSAPI4.x-]+|[0-9_]+/g);
+                var collect = d.data.testName.substring(0, d.data.testName.lastIndexOf(".")).match(/[a-zA-Z]+|[0-9_]+/g);
                 var tempCol = collect[1].split(/_/g);
                 collect[1] = "";
                 collect[2] = tempCol[0] + "/" + tempCol[1] + "/" + tempCol[2];
