@@ -1,4 +1,13 @@
-﻿function onFormLoad() {
+﻿window.onload = function () {
+
+    let tempStr = getTodayDate();
+    if ($("#testDate")[0].type != "date") {
+        $("#testDate").datepicker();
+        $("#chooseDay").datepicker("option", "maxDate", new Date());
+    } else {
+        document.querySelector("#testDate").max = tempStr;
+    }
+    document.querySelector("#testDate").value = tempStr;
     var envir1Sel = document.getElementById("envir1");
     var browSel = document.getElementById("browser");
     // var testName = document.getElementById("testName");
@@ -10,6 +19,22 @@
     for (var i = 0; i < tempBrowser.length; i++) {
         browSel.options[i] = new Option(tempBrowser[i], tempBrowser[i]);
     }
+
+    //bind event linsteners
+    document.querySelector("#envir1").addEventListener("change", function () {
+        onSelectChange();
+    });
+    document.querySelectorAll("#sourceUpload,#testDate").forEach(function (ele) {
+        ele.addEventListener("change", function () {
+            validateButton();
+        });
+    });
+    document.querySelector("#submitBut").addEventListener("click", function () {
+        submitForm();
+    });
+    document.querySelector("#back").addEventListener("click", function () {
+        location.href = "home.html";
+    });
 
     var xmlHTTP = new XMLHttpRequest();
     xmlHTTP.onreadystatechange = function () {
@@ -66,83 +91,76 @@
     xmlHTTP.send();
 
     onSelectChange();
-    if ($('#testDate')[0].type != 'date') {
-        $('#testDate').datepicker();
-    }
-}
 
-function onSelectChange() {
-    var envir1Sel = document.getElementById("envir1"),
-        envir2Sel = document.getElementById("envir2");
-    var tempHive = 2;
-    envir2Sel.length = 0;
-    if (envir1Sel.selectedIndex == 2) {
-        tempHive = 8;
-    };
-    for (var i = 0; i < tempHive; i++) {
-        envir2Sel.options[i] = new Option("hive " + i, "hive" + i);
-    }
-}
-
-function backtoMain() {
-    location.href = "home.html";
-}
-
-function validateButton() {
-    var fileInput = document.getElementById('sourceUpload');
-    var dateValue = document.getElementById('testDate');
-    var subButton = document.getElementById('submitBut');
-    if (fileInput.files.length > 0 && feasibleDateRange(dateValue.value)) {
-        subButton.className = subButton.className.replace(/(?:^|\s)buttonDisabled(?!\S)/g, '');
-    } else if (subButton.className.indexOf("buttonDisabled") < 0) {
-        subButton.className += " buttonDisabled";
-    }
-}
-
-function submitForm() {
-    var reportHTML = "";
-    var fileInput = document.getElementById('sourceUpload');
-    var file = fileInput.files[0];
-    var reader = new FileReader();
-    var resultDiv = document.getElementById("resultInfo");
-    resultDiv.innerHTML = "<div id =\"loader\" class=\"loader\"></div>";
-    resultDiv.style.display = 'block';
-    reader.onload = function (e) {
-        reportHTML = reader.result;
-        var requestJSON = {
-            reportDate: document.getElementById("testDate").value,
-            reportEnvi: document.getElementById("envir1").value,
-            reportHive: document.getElementById("envir2").value,
-            reportBrowser: document.getElementById("browser").value,
-            testID: document.getElementById("testName").value,
-            reportName: document.getElementById("testName").options[document.getElementById("testName").selectedIndex].text.replace(/\s+/g, ""),
-            reportHTML: reportHTML
+    function onSelectChange() {
+        var envir1Sel = document.getElementById("envir1"),
+            envir2Sel = document.getElementById("envir2");
+        var tempHive = 2;
+        envir2Sel.length = 0;
+        if (envir1Sel.selectedIndex == 2) {
+            tempHive = 8;
+        };
+        for (var i = 0; i < tempHive; i++) {
+            envir2Sel.options[i] = new Option("hive " + i, "hive" + i);
         }
-        if (document.getElementById("switchCheckbox").checked) {
-            requestJSON.reportResult = "Pass";
-        } else {
-            requestJSON.reportResult = "Fail";
+    }
+
+    function validateButton() {
+        var fileInput = document.getElementById('sourceUpload');
+        var dateValue = document.getElementById('testDate');
+        var subButton = document.getElementById('submitBut');
+        if (fileInput.files.length > 0 && feasibleDateRange(dateValue.value)) {
+            subButton.className = subButton.className.replace(/(?:^|\s)buttonDisabled(?!\S)/g, '');
+        } else if (subButton.className.indexOf("buttonDisabled") < 0) {
+            subButton.className += " buttonDisabled";
         }
-        var xmlHTTP = new XMLHttpRequest();
-        xmlHTTP.open("POST", "./uploadReport");
-        xmlHTTP.setRequestHeader("Content-Type", "application/json");
-        xmlHTTP.send(JSON.stringify(requestJSON));
-        xmlHTTP.onreadystatechange = function () {
-            if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
-                resultDiv.innerHTML = this.responseText;
+    }
+
+    function submitForm() {
+        var reportHTML = "";
+        var fileInput = document.getElementById('sourceUpload');
+        var file = fileInput.files[0];
+        var reader = new FileReader();
+        var resultDiv = document.getElementById("resultInfo");
+        resultDiv.innerHTML = "<div id =\"loader\" class=\"loader\"></div>";
+        resultDiv.style.display = 'block';
+        reader.onload = function (e) {
+            reportHTML = reader.result;
+            var requestJSON = {
+                reportDate: document.getElementById("testDate").value,
+                reportEnvi: document.getElementById("envir1").value,
+                reportHive: document.getElementById("envir2").value,
+                reportBrowser: document.getElementById("browser").value,
+                testID: document.getElementById("testName").value,
+                reportName: document.getElementById("testName").options[document.getElementById("testName").selectedIndex].text.replace(/\s+/g, ""),
+                reportHTML: reportHTML
+            }
+            if (document.getElementById("switchCheckbox").checked) {
+                requestJSON.reportResult = "Pass";
+            } else {
+                requestJSON.reportResult = "Fail";
+            }
+            var xmlHTTP = new XMLHttpRequest();
+            xmlHTTP.open("POST", "./uploadReport");
+            xmlHTTP.setRequestHeader("Content-Type", "application/json");
+            xmlHTTP.send(JSON.stringify(requestJSON));
+            xmlHTTP.onreadystatechange = function () {
+                if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+                    resultDiv.innerHTML = this.responseText;
+                }
             }
         }
+        reader.readAsText(file);
     }
-    reader.readAsText(file);
-}
 
-function feasibleDateRange(inputDate) {
-    if (inputDate == "") {
-        return false;
+    function feasibleDateRange(inputDate) {
+        if (inputDate == "") {
+            return false;
+        }
+        var temp1 = new Date(inputDate);
+        if (temp1 > new Date("01/01/2015") && temp1 <= new Date()) {
+            return true;
+        }
+        return false
     }
-    var temp1 = new Date(inputDate);
-    if (temp1 > new Date("01/01/2015") && temp1 <= new Date()) {
-        return true;
-    }
-    return false
 }
