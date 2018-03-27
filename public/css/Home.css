@@ -240,6 +240,7 @@ body {
     font-size: 33px;
     padding: 10px 0px 10px 0px;
 }
+
 #chooseDay {
     display: inline-block;
     margin: auto;
@@ -270,7 +271,7 @@ body {
 #contentNavi2 a {
     padding: 5px 10px 5px 10px;
     text-decoration: none;
-    transition: background-color 150ms linear,color 150ms 150ms linear;
+    transition: background-color 150ms linear, color 150ms 150ms linear;
 }
 
 #contentNavi2 {
@@ -300,7 +301,8 @@ body {
     text-align: center;
 }
 
-#buttonContainer, #exprotContainer {
+#buttonContainer,
+#exprotContainer {
     overflow: auto;
     width: 80%;
     max-width: 1200px;
@@ -541,7 +543,7 @@ div.testListTip a {
     width: 180px;
 }
 
-#modal .gaugeBlock div.gaugeDesc{
+#modal .gaugeBlock div.gaugeDesc {
     margin-top: 20px;
     margin-bottom: 20px;
     font-size: 1.4rem;
@@ -549,7 +551,7 @@ div.testListTip a {
     color: white;
 }
 
-#modal .gaugeBlock div.gaugeInfo{
+#modal .gaugeBlock div.gaugeInfo {
     margin-bottom: 20px;
     font-size: 1rem;
     color: white;
@@ -559,7 +561,6 @@ div.testListTip a {
     height: 170px;
     width: 170px;
 }
-
 
 /* Tree View */
 
@@ -578,7 +579,6 @@ div.testListTip a {
     stroke: #ccc;
     stroke-width: 2px;
 }
-
 
 /* Circle Pack View*/
 
@@ -606,7 +606,6 @@ div.testListTip a {
 .circlePacknode--root {
     pointer-events: none;
 }
-
 
 /* Sunburst View*/
 
@@ -637,7 +636,6 @@ div.testListTip a {
 .sunburstPath.norun:hover {
     fill: #bebebe;
 }
-
 
 /* Ordinary View*/
 
@@ -702,12 +700,11 @@ div.testListTip a {
     height: 32px;
 }
 
-.ordinaryCard button.haschild{
+.ordinaryCard button.haschild {
     cursor: pointer;
 }
 
-.ordinaryCard button.haschild:hover
- {
+.ordinaryCard button.haschild:hover {
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1), 0 0 16px 0 rgba(19, 19, 19, 0.05);
 }
 
@@ -733,12 +730,12 @@ div.testListTip a {
     padding: 0 5px 0 30px;
 }
 
-.ordinaryCard .nameCard .fieldTitle .icon:hover{
+.ordinaryCard .nameCard .fieldTitle :not(.github).icon:hover {
     border-bottom: 2px solid transparent;
     border-bottom-color: #0079c1;
 }
 
-.ordinaryCard .nameCard.login a{
+.ordinaryCard .nameCard.login a {
     font-size: 16px;
     display: inline-block;
     margin: 11px auto 21px 30px;
@@ -786,7 +783,7 @@ div.testListTip a {
     font-weight: 600;
     line-height: 1;
     border-radius: 2px;
-    box-shadow: inset 0 -1px 0 rgba(27,31,35,0.12);
+    box-shadow: inset 0 -1px 0 rgba(27, 31, 35, 0.12);
     pointer-events: none;
     font-family: "Segoe UI", Helvetica, Arial, sans-serif;
 }
@@ -818,7 +815,7 @@ div.testListTip a {
     padding-bottom: 15px;
 }
 
-.ordinaryCard .commentCard .coAvatar{
+.ordinaryCard .commentCard .coAvatar {
     float: left;
     width: 40px;
     height: 40px;
@@ -830,18 +827,18 @@ div.testListTip a {
     pointer-events: none;
 }
 
-.ordinaryCard .commentCard .coName{
+.ordinaryCard .commentCard .coName {
     margin: auto 20px 20px 20px;
     color: #005e95;
 }
 
-.ordinaryCard .commentCard .coTimelabel{
+.ordinaryCard .commentCard .coTimelabel {
     margin: auto;
     font-size: 12px;
     color: #838383;
 }
 
-.ordinaryCard .commentCard .coText{
+.ordinaryCard .commentCard .coText {
     margin: auto 20px 20px 60px;
 }
 
@@ -900,8 +897,10 @@ div.testListTip a {
     height: 40px;
 }
 
-#editModal .ok, #editModal .cancel,
-#deleteModal .cancel, #deleteModal .delete {
+#editModal .ok,
+#editModal .cancel,
+#deleteModal .cancel,
+#deleteModal .delete {
     border: 1px solid #0079c1;
     margin: 10px 5px;
     padding: 3px 15px;
@@ -926,7 +925,7 @@ div.testListTip a {
 }
 
 #editModal .cancel:hover,
-#deleteModal .cancel:hover  {
+#deleteModal .cancel:hover {
     background-color: #005e95;
     color: #FFF;
 }

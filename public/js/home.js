@@ -1194,7 +1194,7 @@ window.onload = function () {
                     let gitIcon = document.createElement("i");
                     gitIcon.className = "github icon";
                     gitIcon.style.color = "black";
-                    gitIcon.style.paddingLeft = "20px";
+                    gitIcon.style.marginLeft = "20px";
                     nameStr.appendChild(gitIcon);
                 }
                 if (obj.hasOwnProperty("id") && ["Test Area 30", "Test Area 31"].indexOf(obj.testName) < 0) { // add info icon
